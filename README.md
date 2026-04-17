@@ -245,6 +245,8 @@ Lines represent insurance product types (Auto, Home, Health, Life) with coverage
 
 ## Running Tests
 
+### Backend (Java)
+
 ```bash
 cd demo-api
 ./mvnw test
@@ -255,6 +257,31 @@ The test suite uses H2 in-memory database — no MySQL required.
 Tests cover:
 - Service layer unit tests (Mockito) for Account, Policy, Claim, and Line
 - Controller unit tests (direct invocation) for all controllers
+- Authorization service tests
+
+### Frontend (JavaScript/React)
+
+```bash
+cd demo-ui
+npm test
+```
+
+Run tests in watch mode:
+```bash
+npm run test:watch
+```
+
+The test suite uses Jest and React Testing Library.
+
+Tests cover:
+- AuthContext state management
+- Login/Register flows
+- Home page rendering
+- Coverage Calculator functionality
+- API client methods
+- Component rendering and user interactions
+
+Coverage thresholds: 70% for branches, functions, lines, and statements.
 
 ---
 
