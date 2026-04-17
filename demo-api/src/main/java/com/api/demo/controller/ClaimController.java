@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.api.demo.dto.ClaimDTO;
 import com.api.demo.entity.Claim;
+import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.ClaimService;
 
 import jakarta.validation.Valid;
@@ -27,6 +28,9 @@ public class ClaimController {
 	@Autowired
 	private ClaimService claimService;
 
+	@Autowired
+	private AuthorizationService authService;
+
 	@PostMapping("/{id}")
 	public ResponseEntity<Claim> createClaim(@PathVariable("id") Integer id, @Valid @RequestBody ClaimDTO claim) {
 		return new ResponseEntity<Claim>(claimService.createNewClaim(id, claim), HttpStatus.CREATED);
@@ -34,6 +38,7 @@ public class ClaimController {
 
 	@PutMapping("/{id}")
 	public ResponseEntity<Claim> updateClaim(@Valid @RequestBody Claim claim, @PathVariable("id") Integer id) {
+		authService.requireAdmin();
 		return new ResponseEntity<Claim>(claimService.updateClaim(claim, id), HttpStatus.OK);
 	}
 
@@ -44,6 +49,7 @@ public class ClaimController {
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<String> deleteClaimById(@PathVariable("id") Integer id) {
+		authService.requireAdmin();
 		return new ResponseEntity<String>(claimService.deleteClaim(id), HttpStatus.OK);
 	}
 

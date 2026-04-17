@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.demo.dto.LineDTO;
+import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.LineService;
 
 import jakarta.validation.Valid;
@@ -26,8 +27,12 @@ public class LineController {
 	@Autowired
 	private LineService lineService;
 
+	@Autowired
+	private AuthorizationService authService;
+
 	@PostMapping("/")
 	public ResponseEntity<LineDTO> createLine(@Valid @RequestBody LineDTO lineDTO) {
+		authService.requireAdmin();
 		return new ResponseEntity<>(lineService.create(lineDTO), HttpStatus.CREATED);
 	}
 
@@ -43,11 +48,13 @@ public class LineController {
 
 	@PutMapping("/{id}")
 	public ResponseEntity<LineDTO> updateLine(@PathVariable("id") Integer id, @Valid @RequestBody LineDTO lineDTO) {
+		authService.requireAdmin();
 		return new ResponseEntity<>(lineService.update(id, lineDTO), HttpStatus.OK);
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<String> deleteLine(@PathVariable("id") Integer id) {
+		authService.requireAdmin();
 		return new ResponseEntity<>(lineService.delete(id), HttpStatus.OK);
 	}
 }

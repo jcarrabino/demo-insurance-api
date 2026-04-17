@@ -161,7 +161,7 @@ button.btn.sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
 }
 
 .feature-grid {
-  max-width: 960px;
+  max-width: 85%;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
