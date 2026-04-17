@@ -34,6 +34,8 @@ class ClaimServiceImplTest {
 	@Mock
 	PolicyRepository policyRepository;
 	@Mock
+	AuthorizationService authService;
+	@Mock
 	ModelMapper modelMapper;
 
 	@InjectMocks
@@ -65,6 +67,7 @@ class ClaimServiceImplTest {
 	@Test
     void createNewClaim_savesAndReturnsClaim() {
         when(policyService.getById(1)).thenReturn(policyDTO);
+        when(authService.isAdmin()).thenReturn(true);
         when(modelMapper.map(claimDTO, Claim.class)).thenReturn(claim);
         when(claimRepository.save(claim)).thenReturn(claim);
 
@@ -78,6 +81,7 @@ class ClaimServiceImplTest {
 	@Test
     void getClaimById_returnsClaim_whenFound() {
         when(claimRepository.findById(1)).thenReturn(Optional.of(claim));
+        when(authService.isAdmin()).thenReturn(true);
 
         Claim result = claimService.getClaimById(1);
 
@@ -95,6 +99,7 @@ class ClaimServiceImplTest {
 	@Test
     void updateClaim_updatesAndReturnsClaim() {
         when(claimRepository.findById(1)).thenReturn(Optional.of(claim));
+        when(authService.isAdmin()).thenReturn(true);
         when(modelMapper.map(claim, Claim.class)).thenReturn(claim);
         when(claimRepository.save(claim)).thenReturn(claim);
 
@@ -115,6 +120,7 @@ class ClaimServiceImplTest {
 	@Test
     void deleteClaim_deletesAndReturnsMessage() {
         when(claimRepository.findById(1)).thenReturn(Optional.of(claim));
+        when(authService.isAdmin()).thenReturn(true);
 
         String result = claimService.deleteClaim(1);
 
@@ -132,6 +138,7 @@ class ClaimServiceImplTest {
 
 	@Test
     void getAllClaim_returnsList() {
+        when(authService.isAdmin()).thenReturn(true);
         when(claimRepository.findAll()).thenReturn(List.of(claim));
 
         List<Claim> result = claimService.getAllClaim();

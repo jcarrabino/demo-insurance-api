@@ -10,10 +10,22 @@ export default defineConfig({
       usePolling: true,
     },
     proxy: {
-      '/api': 'http://app:8080',
-      '/register': 'http://app:8080',
-      '/login': 'http://app:8080',
-      '/welcome': 'http://app:8080',
+      '/api': {
+        target: process.env.VITE_API_URL || 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/register': {
+        target: process.env.VITE_API_URL || 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/login': {
+        target: process.env.VITE_API_URL || 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/welcome': {
+        target: process.env.VITE_API_URL || 'http://localhost:8080',
+        changeOrigin: true,
+      },
     }
   }
 })

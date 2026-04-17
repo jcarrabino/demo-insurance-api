@@ -3,8 +3,10 @@ package com.api.demo.service;
 import com.api.demo.dto.AccountDTO;
 import com.api.demo.dto.PolicyDTO;
 import com.api.demo.entity.Account;
+import com.api.demo.entity.Line;
 import com.api.demo.entity.Policy;
 import com.api.demo.exception.ResourceNotFoundException;
+import com.api.demo.repository.LineRepository;
 import com.api.demo.repository.PolicyRepository;
 import com.api.demo.service.impl.PolicyServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +32,11 @@ class PolicyServiceImplTest {
 	@Mock
 	PolicyRepository policyRepository;
 	@Mock
+	LineRepository lineRepository;
+	@Mock
 	AccountService accountService;
+	@Mock
+	AuthorizationService authService;
 	@Mock
 	ModelMapper modelMapper;
 
@@ -41,6 +47,7 @@ class PolicyServiceImplTest {
 	private PolicyDTO policyDTO;
 	private Account account;
 	private AccountDTO accountDTO;
+	private Line line;
 
 	@BeforeEach
 	void setUp() {
@@ -50,17 +57,20 @@ class PolicyServiceImplTest {
 		accountDTO = new AccountDTO();
 		accountDTO.setId(1);
 
+		line = new Line();
+		line.setId(1);
+		line.setName("Auto Insurance");
+
 		policy = new Policy();
 		policy.setId(1);
+		policy.setLine(line);
 		policy.setPremium(BigDecimal.valueOf(500));
 		policy.setStartDate(LocalDate.now());
 		policy.setExpiryDate(LocalDate.now().plusYears(1));
 
 		policyDTO = new PolicyDTO();
 		policyDTO.setId(1);
-		policyDTO.setPolicyNumber("POL-001");
-		policyDTO.setPolicyType("Health");
-		policyDTO.setCoverageAmount(BigDecimal.valueOf(10000));
+		policyDTO.setLineId(1);
 		policyDTO.setPremium(BigDecimal.valueOf(500));
 		policyDTO.setStartDate(LocalDate.now());
 		policyDTO.setEndDate(LocalDate.now().plusYears(1));
@@ -70,24 +80,25 @@ class PolicyServiceImplTest {
     void createNewPolicy_savesAndReturnsDTO() {
         when(accountService.findById(1)).thenReturn(accountDTO);
         when(modelMapper.map(accountDTO, Account.class)).thenReturn(account);
-        when(modelMapper.map(policyDTO, Policy.class)).thenReturn(policy);
-        when(policyRepository.save(policy)).thenReturn(policy);
+        when(lineRepository.findById(1)).thenReturn(Optional.of(line));
+        when(policyRepository.save(any(Policy.class))).thenReturn(policy);
         when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
 
         PolicyDTO result = policyService.createNewPolicy(1, policyDTO);
 
         assertThat(result).isNotNull();
-        verify(policyRepository).save(policy);
+        verify(policyRepository).save(any(Policy.class));
     }
 
 	@Test
     void getById_returnsDTO_whenFound() {
         when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+        when(authService.isAdmin()).thenReturn(true);
         when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
 
         PolicyDTO result = policyService.getById(1);
 
-        assertThat(result.getPolicyNumber()).isEqualTo("POL-001");
+        assertThat(result.getLineId()).isEqualTo(1);
     }
 
 	@Test
@@ -101,7 +112,8 @@ class PolicyServiceImplTest {
 	@Test
     void updatePolicy_updatesAndReturnsDTO() {
         when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
-        when(modelMapper.map(policyDTO, Policy.class)).thenReturn(policy);
+        when(authService.isAdmin()).thenReturn(true);
+        when(lineRepository.findById(1)).thenReturn(Optional.of(line));
         when(policyRepository.save(policy)).thenReturn(policy);
         when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
 
@@ -122,6 +134,7 @@ class PolicyServiceImplTest {
 	@Test
     void deletePolicy_deletesAndReturnsMessage() {
         when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+        when(authService.isAdmin()).thenReturn(true);
 
         String result = policyService.deletePolicy(1);
 
@@ -139,6 +152,7 @@ class PolicyServiceImplTest {
 
 	@Test
     void getAllPolicy_returnsList() {
+        when(authService.isAdmin()).thenReturn(true);
         when(policyRepository.findAll()).thenReturn(List.of(policy));
         when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
 

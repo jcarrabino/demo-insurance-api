@@ -33,23 +33,29 @@ public class ClaimController {
 
 	@PostMapping("/{id}")
 	public ResponseEntity<Claim> createClaim(@PathVariable("id") Integer id, @Valid @RequestBody ClaimDTO claim) {
+		// Admins can create claims for any policy
+		// Regular users can only create claims for their own policies (validation in service layer)
 		return new ResponseEntity<Claim>(claimService.createNewClaim(id, claim), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<Claim> updateClaim(@Valid @RequestBody Claim claim, @PathVariable("id") Integer id) {
-		authService.requireAdmin();
+		// Admins can update any claim
+		// Regular users can only update their own claims (validation in service layer)
 		return new ResponseEntity<Claim>(claimService.updateClaim(claim, id), HttpStatus.OK);
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<Claim> getClaimById(@PathVariable("id") Integer id) {
+		// Admins can view any claim
+		// Regular users can only view their own claims (validation in service layer)
 		return new ResponseEntity<Claim>(claimService.getClaimById(id), HttpStatus.OK);
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<String> deleteClaimById(@PathVariable("id") Integer id) {
-		authService.requireAdmin();
+		// Admins can delete any claim
+		// Regular users can only delete their own claims (validation in service layer)
 		return new ResponseEntity<String>(claimService.deleteClaim(id), HttpStatus.OK);
 	}
 

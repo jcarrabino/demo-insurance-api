@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAccounts, updateAccount, deleteAccount } from '../api/client'
+import { useAuth } from '../context/AuthContext'
 
 export default function Accounts() {
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
@@ -24,7 +26,7 @@ export default function Accounts() {
     },
     onError: (err) => {
       const data = err.response?.data
-      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.Massege || 'Update failed')
+      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.message || data?.Massege || 'Update failed')
     },
   })
 
@@ -35,18 +37,28 @@ export default function Accounts() {
       setSuccess('Account deleted successfully')
       setTimeout(() => setSuccess(''), 3000)
     },
-    onError: () => setError('Failed to delete account'),
+    onError: (err) => {
+      const data = err.response?.data
+      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.message || 'Failed to delete account')
+    },
   })
 
   const handleEdit = (account) => {
     setEditingId(account.id)
     setEditForm({
-      firstName: account.firstName,
-      lastName: account.lastName,
-      email: account.email,
-      phoneNumber: account.phoneNumber,
-      about: account.about || '',
-      dateOfBirth: account.dateOfBirth,
+      firstName: account.firstName || '',
+      middleName: account.middleName || '',
+      lastName: account.lastName || '',
+      email: account.email || '',
+      phoneNumber: account.phoneNumber || '',
+      dateOfBirth: account.dateOfBirth || '',
+      address: account.address || {
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: ''
+      },
     })
     setError('')
   }
@@ -56,7 +68,14 @@ export default function Accounts() {
   }
 
   const handleDelete = (id) => {
-    if (!confirm('Delete this account?')) return
+    // Prevent deleting own account
+    if (id === user?.id) {
+      setError('Cannot delete your own account')
+      setTimeout(() => setError(''), 3000)
+      return
+    }
+    
+    if (!confirm('Delete this account? This will also delete all associated policies and claims.')) return
     deleteMutation.mutate(id)
   }
 
@@ -77,22 +96,50 @@ export default function Accounts() {
                   placeholder="First Name"
                   value={editForm.firstName}
                   onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                  minLength="2"
+                  maxLength="50"
+                  required
+                />
+                <input
+                  placeholder="Middle Name"
+                  value={editForm.middleName}
+                  onChange={(e) => setEditForm({ ...editForm, middleName: e.target.value })}
+                  maxLength="50"
                 />
                 <input
                   placeholder="Last Name"
                   value={editForm.lastName}
                   onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                  minLength="2"
+                  maxLength="50"
+                  required
                 />
                 <input
                   type="email"
                   placeholder="Email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  required
                 />
                 <input
-                  placeholder="Phone"
-                  value={editForm.phoneNumber}
+                  type="tel"
+                  placeholder="Phone (10 digits)"
+                  value={editForm.phoneNumber || ''}
                   onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                  pattern="[0-9]{10}"
+                  maxLength="10"
+                />
+                <input
+                  type="date"
+                  placeholder="Date of Birth"
+                  value={editForm.dateOfBirth || ''}
+                  onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
+                  max={new Date().toISOString().split('T')[0]}
+                />
+                <input
+                  placeholder="Zip Code"
+                  value={editForm.address?.zipCode || ''}
+                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, zipCode: e.target.value } })}
                 />
                 <div className="actions">
                   <button className="btn sm" onClick={() => handleUpdate(acc.id)}>Save</button>
@@ -101,14 +148,19 @@ export default function Accounts() {
               </div>
             ) : (
               <>
-                <h3>{acc.firstName} {acc.lastName}</h3>
-                {acc.admin && <span className="badge" style={{ background: '#4f46e5', color: 'white' }}>Admin</span>}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h3>{acc.firstName} {acc.lastName}</h3>
+                  {acc.admin && <span className="badge" style={{ background: '#4f46e5', color: 'white' }}>Admin</span>}
+                </div>
                 <p><strong>Email:</strong> {acc.email}</p>
-                <p><strong>Phone:</strong> {acc.phoneNumber}</p>
-                <p><strong>DOB:</strong> {acc.dateOfBirth}</p>
+                {acc.phoneNumber && <p><strong>Phone:</strong> {acc.phoneNumber}</p>}
+                {acc.dateOfBirth && <p><strong>DOB:</strong> {acc.dateOfBirth}</p>}
+                {acc.address?.zipCode && <p><strong>Zip:</strong> {acc.address.zipCode}</p>}
                 <div className="actions">
                   <button className="btn sm" onClick={() => handleEdit(acc)}>Edit</button>
-                  <button className="btn danger sm" onClick={() => handleDelete(acc.id)}>Delete</button>
+                  {acc.id !== user?.id && (
+                    <button className="btn danger sm" onClick={() => handleDelete(acc.id)}>Delete</button>
+                  )}
                 </div>
               </>
             )}

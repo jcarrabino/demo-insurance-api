@@ -2,12 +2,40 @@ import axios from 'axios'
 
 const api = axios.create({ baseURL: '' })
 
-// Attach JWT to every request if present
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
+// Attach JWT Bearer token to every request if present
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    
+    // Only add Bearer token if:
+    // 1. Token exists in localStorage
+    // 2. Authorization header is not already set (e.g., for Basic auth in login)
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// Optional: Add response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token might be expired or invalid
+      console.warn('Unauthorized request - token may be invalid or expired')
+      // Optionally clear token and redirect to login
+      // localStorage.removeItem('token')
+      // localStorage.removeItem('user')
+      // window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default api
 

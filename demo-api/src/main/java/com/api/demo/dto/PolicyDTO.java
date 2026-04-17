@@ -7,7 +7,9 @@ import java.util.Set;
 
 import com.api.demo.entity.Account;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
@@ -19,24 +21,22 @@ public class PolicyDTO {
 
 	private Integer id;
 
-	@NotBlank(message = "Policy Number is required")
-	private String policyNumber;
+	@NotNull(message = "Line ID is required")
+	@Positive(message = "Line ID must be a positive number")
+	private Integer lineId;
 
-	@NotBlank(message = "Policy Type is required")
-	private String policyType;
-
-	@NotNull(message = "Coverage Amount is required")
-	@Positive(message = "Coverage Amount must be a positive number")
-	private BigDecimal coverageAmount;
+	private LineDTO line;
 
 	@NotNull(message = "Premium is required")
-	@Positive(message = "Premium must be a positive number")
+	@DecimalMin(value = "0.01", message = "Premium must be greater than 0")
 	private BigDecimal premium;
 
 	@NotNull(message = "Start Date is required")
+	@FutureOrPresent(message = "Start Date must be today or in the future")
 	private LocalDate startDate;
 
 	@NotNull(message = "End Date is required")
+	@Future(message = "End Date must be in the future")
 	private LocalDate endDate;
 
 	private Account account;

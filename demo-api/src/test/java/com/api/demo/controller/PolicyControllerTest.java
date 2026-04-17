@@ -36,9 +36,7 @@ class PolicyControllerTest {
 	void setUp() {
 		policyDTO = new PolicyDTO();
 		policyDTO.setId(1);
-		policyDTO.setPolicyNumber("POL-001");
-		policyDTO.setPolicyType("Health");
-		policyDTO.setCoverageAmount(BigDecimal.valueOf(10000));
+		policyDTO.setLineId(1);
 		policyDTO.setPremium(BigDecimal.valueOf(500));
 		policyDTO.setStartDate(LocalDate.now());
 		policyDTO.setEndDate(LocalDate.now().plusYears(1));
@@ -51,7 +49,7 @@ class PolicyControllerTest {
         ResponseEntity<PolicyDTO> response = policyController.createdPolicy(policyDTO, 1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody().getPolicyNumber()).isEqualTo("POL-001");
+        assertThat(response.getBody().getId()).isEqualTo(1);
     }
 
 	@Test
@@ -61,7 +59,7 @@ class PolicyControllerTest {
         ResponseEntity<PolicyDTO> response = policyController.getPolicy(1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getPolicyType()).isEqualTo("Health");
+        assertThat(response.getBody().getLineId()).isEqualTo(1);
     }
 
 	@Test

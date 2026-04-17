@@ -38,7 +38,7 @@ public class Account {
 	private String lastName;
 	@Embedded
 	private Address address;
-	private Integer phoneNumber;
+	private String phoneNumber;
 	private LocalDate dateOfBirth;
 
 	@Column(unique = true)

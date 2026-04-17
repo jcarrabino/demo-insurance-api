@@ -98,6 +98,14 @@ In dev mode, any changes to `demo-ui/src/**` files will automatically reload in 
 The MySQL database is automatically initialized with:
 - Schema for all tables (account, policy, claim, line)
 - Seed data for 4 insurance lines (Auto, Home, Life, Health)
+- Admin user: test@test.com / Password1!
+- 3 regular users with policies and claims
+
+**Note**: The init script only runs when the database is first created. To reinitialize the database with fresh data:
+```bash
+docker-compose down -v  # Remove volumes
+docker-compose up --build  # Recreate with fresh data
+```
 
 To stop:
 ```bash
@@ -157,6 +165,19 @@ The UI starts on `http://localhost:5173` and proxies API calls to `localhost:808
 ## Authentication Flow
 
 This app uses **HTTP Basic Auth** to sign in and receive a **JWT** for subsequent requests.
+
+### Test Credentials
+
+The database is seeded with the following test accounts (all passwords: `Password1!`):
+
+| Email                    | Role    | Description                          |
+|--------------------------|---------|--------------------------------------|
+| test@test.com            | Admin   | Full access to all accounts/data     |
+| john.doe@example.com     | User    | Regular user with 3 policies         |
+| jane.smith@example.com   | User    | Regular user with 2 policies         |
+| bob.johnson@example.com  | User    | Regular user with 3 policies         |
+
+Admin users can view and manage all accounts, policies, and claims. Regular users can only access their own data.
 
 ### 1. Register
 ```

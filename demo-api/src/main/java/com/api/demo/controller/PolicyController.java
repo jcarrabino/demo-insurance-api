@@ -33,25 +33,33 @@ public class PolicyController {
 	@PostMapping("/{accountId}")
 	public ResponseEntity<PolicyDTO> createdPolicy(@Valid @RequestBody PolicyDTO policy,
 			@PathVariable("accountId") Integer AccountId) {
-		authService.requireAdmin();
+		// Admins can create policies for any account
+		// Regular users can only create policies for themselves
+		if (!authService.isAdmin()) {
+			authService.requireAdminOrOwner(AccountId);
+		}
 		return new ResponseEntity<PolicyDTO>(policyService.createNewPolicy(AccountId, policy), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<PolicyDTO> updatePolicy(@Valid @RequestBody PolicyDTO policy,
 			@PathVariable("id") Integer id) {
-		authService.requireAdmin();
+		// Admins can update any policy
+		// Regular users can only update their own policies (validation in service layer)
 		return new ResponseEntity<PolicyDTO>(policyService.updatePolicy(policy, id), HttpStatus.OK);
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<String> deletePolicy(@PathVariable("id") Integer id) {
-		authService.requireAdmin();
+		// Admins can delete any policy
+		// Regular users can only delete their own policies (validation in service layer)
 		return new ResponseEntity<String>(policyService.deletePolicy(id), HttpStatus.OK);
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<PolicyDTO> getPolicy(@PathVariable("id") Integer id) {
+		// Admins can view any policy
+		// Regular users can only view their own policies (validation in service layer)
 		return new ResponseEntity<PolicyDTO>(policyService.getById(id), HttpStatus.OK);
 	}
 

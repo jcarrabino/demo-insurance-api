@@ -15,11 +15,20 @@ export default function Login() {
     setError('')
     try {
       const res = await login(email, password)
-      const jwt = res.headers['authorization']
+      // Try different header case variations
+      const jwt = res.headers['authorization'] || res.headers['Authorization']
+      
+      if (!jwt) {
+        console.error('No JWT token received in response headers:', res.headers)
+        setError('Authentication failed - no token received')
+        return
+      }
+      
       saveAuth(jwt, res.data)
-      navigate('/accounts')
+      navigate('/policies')
     } catch (err) {
-      setError(err.response?.data?.Massege || 'Invalid credentials')
+      console.error('Login error:', err)
+      setError(err.response?.data?.Massege || err.response?.data?.message || 'Invalid credentials')
     }
   }
 

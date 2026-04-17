@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import com.api.demo.entity.Address;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -24,22 +25,26 @@ public class AccountDTO {
 
 	private Integer id;
 
-	@NotBlank(message = "First Name is required!!")
+	@NotBlank(message = "First Name is required")
+	@Size(min = 2, max = 50, message = "First Name must be between 2 and 50 characters")
 	private String firstName;
 
-	@NotEmpty(message = "Last Name is required!!")
+	@Size(max = 50, message = "Middle Name must be less than 50 characters")
+	private String middleName;
+
+	@NotEmpty(message = "Last Name is required")
+	@Size(min = 2, max = 50, message = "Last Name must be between 2 and 50 characters")
 	private String lastName;
 
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
-	@Past(message = "DOB must be in the Past!!")
+	@Past(message = "Date of Birth must be in the past")
 	private LocalDate dateOfBirth;
 
-	@Email(message = "Email is not valid!!")
-	@NotBlank(message = "Email is required!!")
+	@Email(message = "Email is not valid")
+	@NotBlank(message = "Email is required")
 	private String email;
 
-	@NotEmpty(message = "Phone Number is required!!")
-	@Size(min = 10, max = 10, message = "Phone Number must be only 10 digits!!")
+	@Pattern(regexp = "^[0-9]{10}$", message = "Phone Number must be exactly 10 digits")
 	private String phoneNumber;
 
 	@JsonProperty(access = Access.WRITE_ONLY)
@@ -47,9 +52,7 @@ public class AccountDTO {
 	@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$", message = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character")
 	private String password;
 
-	@NotEmpty(message = "About is required!!")
-	private String about;
-
+	@Valid
 	private Address address;
 
 	private Boolean admin;

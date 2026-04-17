@@ -37,7 +37,6 @@ class PublicControllerTest {
 		accountDTO.setLastName("Doe");
 		accountDTO.setEmail("john@example.com");
 		accountDTO.setPhoneNumber("1234567890");
-		accountDTO.setAbout("Test");
 		accountDTO.setDateOfBirth(LocalDate.of(1990, 1, 1));
 		accountDTO.setPassword("Password1@");
 	}

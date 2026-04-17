@@ -55,7 +55,6 @@ class AccountServiceImplTest {
 		accountDTO.setPassword("Password1@");
 		accountDTO.setDateOfBirth(LocalDate.of(1990, 1, 1));
 		accountDTO.setPhoneNumber("1234567890");
-		accountDTO.setAbout("Test user");
 	}
 
 	@Test
