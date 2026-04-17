@@ -49,6 +49,7 @@ public class AccountController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<AccountDTO> getAccountById(@PathVariable("id") Integer id) {
+		authService.requireAdminOrOwner(id);
 		return new ResponseEntity<AccountDTO>(accountService.findById(id), HttpStatus.OK);
 	}
 
@@ -59,6 +60,7 @@ public class AccountController {
 
 	@GetMapping("/")
 	public ResponseEntity<List<AccountDTO>> getAllAccount() {
+		authService.requireAdmin();
 		return new ResponseEntity<List<AccountDTO>>(accountService.findAllAccount(), HttpStatus.OK);
 	}
 

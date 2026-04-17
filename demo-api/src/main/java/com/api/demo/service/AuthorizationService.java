@@ -22,7 +22,7 @@ public class AuthorizationService {
 			throw new ResourceNotFoundException("User not authenticated");
 		}
 
-		String email = null;
+		final String email;
 		if (auth.getPrincipal() instanceof UserDetails) {
 			email = ((UserDetails) auth.getPrincipal()).getUsername();
 		} else {

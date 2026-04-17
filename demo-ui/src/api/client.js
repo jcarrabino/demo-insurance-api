@@ -44,3 +44,6 @@ export const getLine = (id) => api.get(`/api/lines/${id}`)
 export const createLine = (data) => api.post('/api/lines/', data)
 export const updateLine = (id, data) => api.put(`/api/lines/${id}`, data)
 export const deleteLine = (id) => api.delete(`/api/lines/${id}`)
+
+// Coverage
+export const calculateCoverage = (accountId, lineId) => api.get(`/api/coverage/calculate/${accountId}/${lineId}`)

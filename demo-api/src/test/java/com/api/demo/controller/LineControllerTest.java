@@ -2,6 +2,7 @@ package com.api.demo.controller;
 
 import com.api.demo.dto.LineDTO;
 import com.api.demo.exception.ResourceNotFoundException;
+import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.LineService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,8 @@ class LineControllerTest {
 
 	@Mock
 	LineService lineService;
+	@Mock
+	AuthorizationService authService;
 	@InjectMocks
 	LineController lineController;
 

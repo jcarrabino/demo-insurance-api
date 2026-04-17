@@ -2,6 +2,7 @@ package com.api.demo.controller;
 
 import com.api.demo.dto.PolicyDTO;
 import com.api.demo.exception.ResourceNotFoundException;
+import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.PolicyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,8 @@ class PolicyControllerTest {
 
 	@Mock
 	PolicyService policyService;
+	@Mock
+	AuthorizationService authService;
 	@InjectMocks
 	PolicyController policyController;
 
