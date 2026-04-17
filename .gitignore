@@ -34,3 +34,7 @@ build/
 
 ### Node Modules ###
 node_modules
+
+### Testing ###
+coverage
+reports
