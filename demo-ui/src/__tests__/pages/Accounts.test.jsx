@@ -4,9 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Accounts from '../../pages/Accounts'
 import { AuthProvider } from '../../context/AuthContext'
-import * as api from '../../api/client'
-
-jest.mock('../../api/client')
+import { mockApi, setDefaultApiMocks } from '../../__test-mocks__/apiMocks'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -34,7 +32,7 @@ describe('Accounts', () => {
     jest.clearAllMocks()
     localStorage.clear()
     queryClient.clear()
-    api.getAccounts.mockResolvedValue({ data: [] })
+    setDefaultApiMocks()
   })
 
   it('should render accounts page', async () => {
@@ -43,7 +41,7 @@ describe('Accounts', () => {
     expect(screen.getByText('Accounts')).toBeInTheDocument()
     
     await waitFor(() => {
-      expect(api.getAccounts).toHaveBeenCalled()
+      expect(mockApi.getAccounts).toHaveBeenCalled()
     })
   })
 
@@ -52,7 +50,7 @@ describe('Accounts', () => {
       { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@test.com', admin: false, address: { zipCode: '10001' } },
       { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@test.com', admin: false, address: { zipCode: '20002' } },
     ]
-    api.getAccounts.mockResolvedValue({ data: mockAccounts })
+    mockApi.getAccounts.mockResolvedValue({ data: mockAccounts })
 
     renderAccounts()
 
@@ -67,7 +65,7 @@ describe('Accounts', () => {
     const mockAccounts = [
       { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@test.com', admin: false, address: { zipCode: '10001' } },
     ]
-    api.getAccounts.mockResolvedValue({ data: mockAccounts })
+    mockApi.getAccounts.mockResolvedValue({ data: mockAccounts })
 
     renderAccounts()
 
@@ -89,8 +87,8 @@ describe('Accounts', () => {
     const mockAccounts = [
       { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@test.com', admin: false, address: { zipCode: '10001' } },
     ]
-    api.getAccounts.mockResolvedValue({ data: mockAccounts })
-    api.updateAccount.mockResolvedValue({ data: { ...mockAccounts[0], firstName: 'Johnny' } })
+    mockApi.getAccounts.mockResolvedValue({ data: mockAccounts })
+    mockApi.updateAccount.mockResolvedValue({ data: { ...mockAccounts[0], firstName: 'Johnny' } })
 
     renderAccounts()
 
@@ -109,7 +107,7 @@ describe('Accounts', () => {
     await user.click(saveButton)
 
     await waitFor(() => {
-      expect(api.updateAccount).toHaveBeenCalled()
+      expect(mockApi.updateAccount).toHaveBeenCalled()
     })
   })
 
@@ -118,8 +116,8 @@ describe('Accounts', () => {
     const mockAccounts = [
       { id: 2, firstName: 'John', lastName: 'Doe', email: 'john@test.com', admin: false, address: { zipCode: '10001' } },
     ]
-    api.getAccounts.mockResolvedValue({ data: mockAccounts })
-    api.deleteAccount.mockResolvedValue({ data: 'deleted' })
+    mockApi.getAccounts.mockResolvedValue({ data: mockAccounts })
+    mockApi.deleteAccount.mockResolvedValue({ data: 'deleted' })
 
     renderAccounts()
 
@@ -131,7 +129,7 @@ describe('Accounts', () => {
     await user.click(deleteButton)
 
     await waitFor(() => {
-      expect(api.deleteAccount).toHaveBeenCalledWith(2)
+      expect(mockApi.deleteAccount).toHaveBeenCalledWith(2)
     })
   })
 })

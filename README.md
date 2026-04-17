@@ -281,7 +281,7 @@ Tests cover:
 - API client methods
 - Component rendering and user interactions
 
-Coverage thresholds: 70% for branches, functions, lines, and statements.
+Coverage thresholds: 85% for lines and statements, 80% for branches and functions.
 
 ---
 
@@ -320,13 +320,15 @@ npm run lint:fix
 ```
 
 ### Pre-commit hook
-A git pre-commit hook automatically formats and lints all code before every commit:
+A git pre-commit hook automatically runs quality checks before every commit:
 - Located at `.git/hooks/pre-commit`
-- Runs `mvn spotless:apply` for Java files
-- Runs `npm run lint:fix` for JavaScript/React files
+- **Formatting**: Runs `mvn spotless:apply` for Java files
+- **Linting**: Runs `npm run lint:fix` for JavaScript/React files
+- **Testing**: Runs `mvn test` for Java tests and `npm test` for JavaScript tests
 - Re-stages formatted files
+- **Blocks commit** if any tests fail
 
-This ensures no unformatted or linting-error code ever touches the repository.
+This ensures no unformatted code or failing tests ever touch the repository.
 
 ---
 

@@ -4,9 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Policies from '../../pages/Policies'
 import { AuthProvider } from '../../context/AuthContext'
-import * as api from '../../api/client'
-
-jest.mock('../../api/client')
+import { mockApi, setDefaultApiMocks } from '../../__test-mocks__/apiMocks'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -33,8 +31,8 @@ describe('Policies', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     localStorage.clear()
-    api.getPolicies.mockResolvedValue({ data: [] })
-    api.getLines.mockResolvedValue({ data: [] })
+    queryClient.clear()
+    setDefaultApiMocks()
   })
 
   it('should render policies page', async () => {
@@ -43,7 +41,7 @@ describe('Policies', () => {
     expect(screen.getByText('Policies')).toBeInTheDocument()
     
     await waitFor(() => {
-      expect(api.getPolicies).toHaveBeenCalled()
+      expect(mockApi.getPolicies).toHaveBeenCalled()
     })
   })
 
@@ -52,7 +50,7 @@ describe('Policies', () => {
       { id: 1, policyNumber: 'POL-001', line: { name: 'Auto' }, premium: 1000, startDate: '2024-01-01', endDate: '2025-01-01' },
       { id: 2, policyNumber: 'POL-002', line: { name: 'Home' }, premium: 2000, startDate: '2024-01-01', endDate: '2025-01-01' },
     ]
-    api.getPolicies.mockResolvedValue({ data: mockPolicies })
+    mockApi.getPolicies.mockResolvedValue({ data: mockPolicies })
 
     renderPolicies()
 
@@ -67,8 +65,8 @@ describe('Policies', () => {
     const mockPolicies = [
       { id: 1, policyNumber: 'POL-001', line: { name: 'Auto' }, premium: 1000, startDate: '2024-01-01', endDate: '2025-01-01' },
     ]
-    api.getPolicies.mockResolvedValue({ data: mockPolicies })
-    api.deletePolicy.mockResolvedValue({ data: 'deleted' })
+    mockApi.getPolicies.mockResolvedValue({ data: mockPolicies })
+    mockApi.deletePolicy.mockResolvedValue({ data: 'deleted' })
 
     renderPolicies()
 
@@ -80,7 +78,7 @@ describe('Policies', () => {
     await user.click(deleteButton)
 
     await waitFor(() => {
-      expect(api.deletePolicy).toHaveBeenCalledWith(1)
+      expect(mockApi.deletePolicy).toHaveBeenCalledWith(1)
     })
   })
 })

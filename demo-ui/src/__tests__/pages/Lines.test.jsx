@@ -33,6 +33,7 @@ describe('Lines', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     localStorage.clear()
+    queryClient.clear()
     api.getLines.mockResolvedValue({ data: [] })
   })
 
@@ -65,6 +66,7 @@ describe('Lines', () => {
     const user = userEvent.setup()
     const newLine = { id: 3, name: 'Life', minCoverage: 100000, maxCoverage: 5000000 }
     api.createLine.mockResolvedValue({ data: newLine })
+    api.getLines.mockResolvedValue({ data: [newLine] })
 
     renderLines()
 

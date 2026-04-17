@@ -4,9 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Claims from '../../pages/Claims'
 import { AuthProvider } from '../../context/AuthContext'
-import * as api from '../../api/client'
-
-jest.mock('../../api/client')
+import { mockApi, setDefaultApiMocks } from '../../__test-mocks__/apiMocks'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -33,8 +31,8 @@ describe('Claims', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     localStorage.clear()
-    api.getClaims.mockResolvedValue({ data: [] })
-    api.getPolicies.mockResolvedValue({ data: [] })
+    queryClient.clear()
+    setDefaultApiMocks()
   })
 
   it('should render claims page', async () => {
@@ -43,7 +41,7 @@ describe('Claims', () => {
     expect(screen.getByText('Claims')).toBeInTheDocument()
     
     await waitFor(() => {
-      expect(api.getClaims).toHaveBeenCalled()
+      expect(mockApi.getClaims).toHaveBeenCalled()
     })
   })
 
@@ -52,7 +50,7 @@ describe('Claims', () => {
       { id: 1, claimNumber: 'CLM-001', policy: { policyNumber: 'POL-001' }, claimAmount: 5000, status: 'PENDING', claimDate: '2024-01-15' },
       { id: 2, claimNumber: 'CLM-002', policy: { policyNumber: 'POL-002' }, claimAmount: 3000, status: 'APPROVED', claimDate: '2024-01-20' },
     ]
-    api.getClaims.mockResolvedValue({ data: mockClaims })
+    mockApi.getClaims.mockResolvedValue({ data: mockClaims })
 
     renderClaims()
 
@@ -67,8 +65,8 @@ describe('Claims', () => {
     const mockClaims = [
       { id: 1, claimNumber: 'CLM-001', policy: { policyNumber: 'POL-001' }, claimAmount: 5000, status: 'PENDING', claimDate: '2024-01-15' },
     ]
-    api.getClaims.mockResolvedValue({ data: mockClaims })
-    api.deleteClaim.mockResolvedValue({ data: 'deleted' })
+    mockApi.getClaims.mockResolvedValue({ data: mockClaims })
+    mockApi.deleteClaim.mockResolvedValue({ data: 'deleted' })
 
     renderClaims()
 
@@ -80,7 +78,7 @@ describe('Claims', () => {
     await user.click(deleteButton)
 
     await waitFor(() => {
-      expect(api.deleteClaim).toHaveBeenCalledWith(1)
+      expect(mockApi.deleteClaim).toHaveBeenCalledWith(1)
     })
   })
 })

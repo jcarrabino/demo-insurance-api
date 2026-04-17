@@ -3,9 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import CoverageCalculator from '../../pages/CoverageCalculator'
 import { AuthProvider } from '../../context/AuthContext'
-import * as api from '../../api/client'
-
-jest.mock('../../api/client')
+import { mockApi, setDefaultApiMocks } from '../../__test-mocks__/apiMocks'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -41,8 +39,17 @@ describe('CoverageCalculator', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     localStorage.clear()
-    api.getLines.mockResolvedValue({ data: mockLines })
-    api.getAccounts.mockResolvedValue({ data: mockAccounts })
+    setDefaultApiMocks()
+    const mockLines = [
+      { id: 1, name: 'Auto', minCoverage: 10000, maxCoverage: 500000 },
+      { id: 2, name: 'Home', minCoverage: 50000, maxCoverage: 1000000 },
+    ]
+    const mockAccounts = [
+      { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@test.com' },
+      { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@test.com' },
+    ]
+    mockApi.getLines.mockResolvedValue({ data: mockLines })
+    mockApi.getAccounts.mockResolvedValue({ data: mockAccounts })
   })
 
   it('should render calculator form', async () => {
@@ -86,7 +93,7 @@ describe('CoverageCalculator', () => {
       premiumAdjustment: 1.2,
     }
 
-    api.calculateCoverage.mockResolvedValue({ data: mockResult })
+    mockApi.calculateCoverage.mockResolvedValue({ data: mockResult })
 
     renderCalculator(mockUser)
 
@@ -107,7 +114,7 @@ describe('CoverageCalculator', () => {
 
   it('should display error when calculation fails', async () => {
     const user = userEvent.setup()
-    api.calculateCoverage.mockRejectedValue({
+    mockApi.calculateCoverage.mockRejectedValue({
       response: { data: { message: 'Calculation failed' } },
     })
 

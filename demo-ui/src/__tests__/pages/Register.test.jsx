@@ -4,9 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Register from '../../pages/Register'
 import { AuthProvider } from '../../context/AuthContext'
-import * as api from '../../api/client'
-
-jest.mock('../../api/client')
+import { mockApi } from '../../__test-mocks__/apiMocks'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -42,7 +40,7 @@ describe('Register', () => {
   it('should handle successful registration', async () => {
     const user = userEvent.setup()
     const mockResponse = { data: { id: 1, email: 'test@test.com' } }
-    api.register.mockResolvedValue(mockResponse)
+    mockApi.register.mockResolvedValue(mockResponse)
 
     renderRegister()
 
@@ -53,13 +51,13 @@ describe('Register', () => {
     await user.click(screen.getByRole('button', { name: /register/i }))
 
     await waitFor(() => {
-      expect(api.register).toHaveBeenCalled()
+      expect(mockApi.register).toHaveBeenCalled()
     })
   })
 
   it('should display error on failed registration', async () => {
     const user = userEvent.setup()
-    api.register.mockRejectedValue({
+    mockApi.register.mockRejectedValue({
       response: { data: { message: 'Email already exists' } },
     })
 

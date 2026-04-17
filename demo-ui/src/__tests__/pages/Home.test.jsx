@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import Home from '../pages/Home'
-import { AuthProvider } from '../context/AuthContext'
+import Home from '../../pages/Home'
+import { AuthProvider } from '../../context/AuthContext'
 
 const renderHome = (isLoggedIn = false) => {
   if (isLoggedIn) {

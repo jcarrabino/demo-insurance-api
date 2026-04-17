@@ -4,9 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Login from '../../pages/Login'
 import { AuthProvider } from '../../context/AuthContext'
-import * as api from '../../api/client'
-
-jest.mock('../../api/client')
+import { mockApi } from '../../__test-mocks__/apiMocks'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -45,7 +43,7 @@ describe('Login', () => {
       data: { id: 1, email: 'test@test.com', admin: false },
     }
 
-    api.login.mockResolvedValue(mockResponse)
+    mockApi.login.mockResolvedValue(mockResponse)
 
     renderLogin()
 
@@ -54,13 +52,13 @@ describe('Login', () => {
     await user.click(screen.getByRole('button', { name: /login/i }))
 
     await waitFor(() => {
-      expect(api.login).toHaveBeenCalledWith('test@test.com', 'Password1!')
+      expect(mockApi.login).toHaveBeenCalledWith('test@test.com', 'Password1!')
     })
   })
 
   it('should display error on failed login', async () => {
     const user = userEvent.setup()
-    api.login.mockRejectedValue({
+    mockApi.login.mockRejectedValue({
       response: { data: { Massege: 'Invalid credentials' } },
     })
 
