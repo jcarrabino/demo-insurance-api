@@ -51,4 +51,6 @@ public class AccountDTO {
 	private String about;
 
 	private Address address;
+
+	private Boolean admin;
 }

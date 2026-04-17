@@ -47,6 +47,10 @@ public class Account {
 	@JsonProperty(access = Access.WRITE_ONLY)
 	private String password;
 
+	@Builder.Default
+	@Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+	private Boolean admin = false;
+
 	@OneToMany
 	private List<Policy> policy;
 

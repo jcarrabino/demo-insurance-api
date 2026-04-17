@@ -3,6 +3,7 @@ package com.api.demo.controller;
 import com.api.demo.dto.AccountDTO;
 import com.api.demo.exception.ResourceNotFoundException;
 import com.api.demo.service.AccountService;
+import com.api.demo.service.AuthorizationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,8 @@ class AccountControllerTest {
 
 	@Mock
 	AccountService accountService;
+	@Mock
+	AuthorizationService authService;
 	@InjectMocks
 	AccountController accountController;
 

@@ -4,6 +4,7 @@ import com.api.demo.dto.ClaimDTO;
 import com.api.demo.entity.Claim;
 import com.api.demo.exception.ResourceNotFoundException;
 import com.api.demo.model.ClaimStatus;
+import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.ClaimService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,8 @@ class ClaimControllerTest {
 
 	@Mock
 	ClaimService claimService;
+	@Mock
+	AuthorizationService authService;
 	@InjectMocks
 	ClaimController claimController;
 

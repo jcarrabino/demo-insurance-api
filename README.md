@@ -63,6 +63,10 @@ A full-stack insurance management application built with Spring Boot 4, React, a
 
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) to be running.
 
+### Production Mode (default)
+
+Builds and serves the UI with nginx:
+
 ```bash
 docker-compose up --build
 ```
@@ -74,6 +78,23 @@ docker-compose up --build
 | Swagger  | http://localhost:8080/swagger-ui/index.html |
 | MySQL    | localhost:3306            |
 
+### Development Mode (with hot-reload)
+
+Runs Vite dev server with hot module replacement for frontend changes:
+
+```bash
+docker-compose --profile dev up --build
+```
+
+| Service  | URL                       |
+|----------|---------------------------|
+| UI (dev) | http://localhost:5173     |
+| API      | http://localhost:8080     |
+| Swagger  | http://localhost:8080/swagger-ui/index.html |
+| MySQL    | localhost:3306            |
+
+In dev mode, any changes to `demo-ui/src/**` files will automatically reload in the browser.
+
 The MySQL database is automatically initialized with:
 - Schema for all tables (account, policy, claim, line)
 - Seed data for 4 insurance lines (Auto, Home, Life, Health)
@@ -81,6 +102,8 @@ The MySQL database is automatically initialized with:
 To stop:
 ```bash
 docker-compose down
+# or for dev mode
+docker-compose --profile dev down
 ```
 
 To stop and wipe the database:

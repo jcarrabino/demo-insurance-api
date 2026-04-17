@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.api.demo.dto.AccountDTO;
 import com.api.demo.service.AccountService;
+import com.api.demo.service.AuthorizationService;
 
 import jakarta.validation.Valid;
 
@@ -26,26 +27,29 @@ public class AccountController {
 	@Autowired
 	private AccountService accountService;
 
-	// @PostMapping("/")
-	// public ResponseEntity<AccountDTO> createAccount(@Valid @RequestBody
-	// AccountDTO account){
-	// return new
-	// ResponseEntity<AccountDTO>(accountService.addAccount(account),HttpStatus.CREATED);
-	// }
+	@Autowired
+	private AuthorizationService authService;
 
 	@PutMapping("/{id}")
 	public ResponseEntity<AccountDTO> updateAccount(@Valid @RequestBody AccountDTO account,
 			@PathVariable("id") Integer id) {
+		authService.requireAdminOrOwner(id);
+		// Prevent non-admins from setting admin flag
+		if (account.getAdmin() != null && account.getAdmin() && !authService.isAdmin()) {
+			throw new SecurityException("Only admins can create admin users");
+		}
 		return new ResponseEntity<AccountDTO>(accountService.updateAccountInfo(account, id), HttpStatus.OK);
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<String> deleteAccount(@PathVariable("id") Integer id) {
+		authService.requireAdminOrOwner(id);
 		return new ResponseEntity<String>(accountService.deleteAccount(id), HttpStatus.OK);
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<AccountDTO> getAccountById(@PathVariable("id") Integer id) {
+		authService.requireAdminOrOwner(id);
 		return new ResponseEntity<AccountDTO>(accountService.findById(id), HttpStatus.OK);
 	}
 
@@ -56,6 +60,7 @@ public class AccountController {
 
 	@GetMapping("/")
 	public ResponseEntity<List<AccountDTO>> getAllAccount() {
+		authService.requireAdmin();
 		return new ResponseEntity<List<AccountDTO>>(accountService.findAllAccount(), HttpStatus.OK);
 	}
 
