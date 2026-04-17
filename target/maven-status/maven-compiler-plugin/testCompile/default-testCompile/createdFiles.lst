@@ -1,8 +1,0 @@
-com\api\demo\controller\AccountControllerTest.class
-com\api\demo\service\PolicyServiceImplTest.class
-com\api\demo\controller\PolicyControllerTest.class
-com\api\demo\controller\ClaimControllerTest.class
-com\api\demo\controller\PublicControllerTest.class
-com\api\demo\DemoApplicationTests.class
-com\api\demo\service\ClaimServiceImplTest.class
-com\api\demo\service\AccountServiceImplTest.class

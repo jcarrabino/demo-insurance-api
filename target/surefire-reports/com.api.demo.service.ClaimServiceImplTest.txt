@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.api.demo.service.ClaimServiceImplTest
--------------------------------------------------------------------------------
-Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.385 s -- in com.api.demo.service.ClaimServiceImplTest

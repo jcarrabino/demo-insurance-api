@@ -72,20 +72,40 @@ ON DUPLICATE KEY UPDATE email=VALUES(email);
 -- Seed regular users
 INSERT INTO account (id, first_name, middle_name, last_name, street, city, state, zip_code, country, phone_number, date_of_birth, email, password, admin) VALUES
     (2, 'John', 'A', 'Doe', '456 Main St', 'Los Angeles', 'CA', '90001', 'USA', 2345678901, '1985-05-15', 'john.doe@example.com', '$2a$10$8K1p/a0dL3.XVP2xnOWGGeG9A2xNe2aFUBdwTzktFN9TkIfW2hdm6', FALSE),
-    (3, 'Jane', 'B', 'Smith', '789 Oak Ave', 'Chicago', 'IL', '60601', 'USA', 3456789012, '1992-08-22', 'jane.smith@example.com', '$2a$10$8K1p/a0dL3.XVP2xnOWGGeG9A2xNe2aFUBdwTzktFN9TkIfW2hdm6', FALSE)
+    (3, 'Jane', 'B', 'Smith', '789 Oak Ave', 'Chicago', 'IL', '60601', 'USA', 3456789012, '1992-08-22', 'jane.smith@example.com', '$2a$10$8K1p/a0dL3.XVP2xnOWGGeG9A2xNe2aFUBdwTzktFN9TkIfW2hdm6', FALSE),
+    (4, 'Bob', 'C', 'Johnson', '321 Pine Rd', 'Houston', 'TX', '77001', 'USA', 4567890123, '1988-11-30', 'bob.johnson@example.com', '$2a$10$8K1p/a0dL3.XVP2xnOWGGeG9A2xNe2aFUBdwTzktFN9TkIfW2hdm6', FALSE)
 ON DUPLICATE KEY UPDATE email=VALUES(email);
 
--- Seed policies
+-- Seed policies (2-3 per user)
 INSERT INTO policy (id, line_id, account_id, premium, start_date, end_date) VALUES
-    (1, 1, 2, 1200.00, '2024-01-01', '2025-01-01'),
-    (2, 2, 2, 2500.00, '2024-01-01', '2025-01-01'),
-    (3, 3, 3, 5000.00, '2024-06-01', '2025-06-01'),
-    (4, 4, 3, 800.00, '2024-01-01', '2025-01-01')
+    -- Admin user policies
+    (1, 1, 1, 1500.00, '2024-01-01', '2025-01-01'),
+    (2, 2, 1, 3000.00, '2024-01-01', '2025-01-01'),
+    (3, 4, 1, 900.00, '2024-01-01', '2025-01-01'),
+    -- John Doe policies
+    (4, 1, 2, 1200.00, '2024-01-01', '2025-01-01'),
+    (5, 2, 2, 2500.00, '2024-01-01', '2025-01-01'),
+    (6, 3, 2, 8000.00, '2024-06-01', '2025-06-01'),
+    -- Jane Smith policies
+    (7, 3, 3, 5000.00, '2024-06-01', '2025-06-01'),
+    (8, 4, 3, 800.00, '2024-01-01', '2025-01-01'),
+    -- Bob Johnson policies
+    (9, 1, 4, 1400.00, '2024-02-01', '2025-02-01'),
+    (10, 2, 4, 2800.00, '2024-02-01', '2025-02-01'),
+    (11, 4, 4, 850.00, '2024-02-01', '2025-02-01')
 ON DUPLICATE KEY UPDATE line_id=VALUES(line_id);
 
--- Seed claims
+-- Seed claims (1-2 per user)
 INSERT INTO claim (id, claim_number, description, claim_date, claim_status, policy_id) VALUES
+    -- Admin user claims
     (1, 'CLM-2024-001', 'Minor fender bender on highway', '2024-03-15', 'APPROVED', 1),
     (2, 'CLM-2024-002', 'Water damage from burst pipe', '2024-04-20', 'IN_PROGRESS', 2),
-    (3, 'CLM-2024-003', 'Annual health checkup', '2024-05-10', 'APPROVED', 4)
+    -- John Doe claims
+    (3, 'CLM-2024-003', 'Rear-end collision at intersection', '2024-05-10', 'APPROVED', 4),
+    (4, 'CLM-2024-004', 'Roof damage from hailstorm', '2024-06-15', 'SUBMITTED', 5),
+    -- Jane Smith claims
+    (5, 'CLM-2024-005', 'Annual health checkup', '2024-07-01', 'APPROVED', 8),
+    -- Bob Johnson claims
+    (6, 'CLM-2024-006', 'Windshield crack from road debris', '2024-08-05', 'IN_PROGRESS', 9),
+    (7, 'CLM-2024-007', 'Emergency room visit', '2024-09-10', 'APPROVED', 11)
 ON DUPLICATE KEY UPDATE claim_number=VALUES(claim_number);
