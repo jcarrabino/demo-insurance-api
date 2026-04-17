@@ -161,7 +161,7 @@
 				<configuration>
 					<java>
 						<eclipse>
-							<version>4.26.0</version>
+							<version>4.26</version>
 						</eclipse>
 						<removeUnusedImports/>
 						<trimTrailingWhitespace/>

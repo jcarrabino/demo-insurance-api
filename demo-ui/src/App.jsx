@@ -1,11 +1,12 @@
-import React from 'react'
 import { Routes, Route, Navigate, NavLink, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Accounts from './pages/Accounts'
 import Policies from './pages/Policies'
 import Claims from './pages/Claims'
+import Lines from './pages/Lines'
 
 function Nav() {
   const { isLoggedIn, user, logout } = useAuth()
@@ -15,13 +16,14 @@ function Nav() {
 
   return (
     <nav>
-      <h1>Insurance Management</h1>
+      <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Insurance Management</h1>
       <div className="nav-links">
         {isLoggedIn ? (
           <>
             <NavLink to="/accounts">Accounts</NavLink>
             <NavLink to="/policies">Policies</NavLink>
             <NavLink to="/claims">Claims</NavLink>
+            <NavLink to="/lines">Lines</NavLink>
             <span style={{ color: '#aaa', fontSize: '0.85rem' }}>{user?.email}</span>
             <button onClick={handleLogout}>Logout</button>
           </>
@@ -46,12 +48,14 @@ export default function App() {
     <AuthProvider>
       <Nav />
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/accounts" element={<PrivateRoute><Accounts /></PrivateRoute>} />
         <Route path="/policies" element={<PrivateRoute><Policies /></PrivateRoute>} />
         <Route path="/claims" element={<PrivateRoute><Claims /></PrivateRoute>} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/lines" element={<PrivateRoute><Lines /></PrivateRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   )

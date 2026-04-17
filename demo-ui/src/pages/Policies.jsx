@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getPolicies, createPolicy, deletePolicy } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 

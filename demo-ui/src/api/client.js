@@ -37,3 +37,10 @@ export const getClaim = (id) => api.get(`/api/claims/${id}`)
 export const createClaim = (policyId, data) => api.post(`/api/claims/${policyId}`, data)
 export const updateClaim = (id, data) => api.put(`/api/claims/${id}`, data)
 export const deleteClaim = (id) => api.delete(`/api/claims/${id}`)
+
+// Lines
+export const getLines = () => api.get('/api/lines/')
+export const getLine = (id) => api.get(`/api/lines/${id}`)
+export const createLine = (data) => api.post('/api/lines/', data)
+export const updateLine = (id, data) => api.put(`/api/lines/${id}`, data)
+export const deleteLine = (id) => api.delete(`/api/lines/${id}`)

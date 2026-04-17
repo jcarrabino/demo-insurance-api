@@ -1,6 +1,6 @@
 # Insurance Management System
 
-A full-stack insurance management application built with Spring Boot 4, React, and MySQL. Supports account registration, JWT authentication, policy management, and claims tracking.
+A full-stack insurance management application built with Spring Boot 4, React, and MySQL. Supports account registration, JWT authentication, policy management, claims tracking, and insurance line management.
 
 ---
 
@@ -13,6 +13,7 @@ A full-stack insurance management application built with Spring Boot 4, React, a
 - MySQL 8
 - Virtual Threads (Project Loom)
 - SpringDoc OpenAPI (Swagger UI)
+- Spotless (code formatting with Eclipse formatter)
 
 **Frontend**
 - React 18 + Vite
@@ -22,6 +23,7 @@ A full-stack insurance management application built with Spring Boot 4, React, a
 
 **Infrastructure**
 - Docker + Docker Compose
+- MySQL initialization scripts
 
 ---
 
@@ -29,26 +31,30 @@ A full-stack insurance management application built with Spring Boot 4, React, a
 
 ```
 .
-├── src/                        # Spring Boot application
-│   ├── main/java/com/api/demo/
+├── demo-api/                   # Spring Boot application
+│   ├── src/main/java/com/api/demo/
 │   │   ├── config/             # Security, JWT, CORS, virtual threads
-│   │   ├── controller/         # REST controllers
+│   │   ├── controller/         # REST controllers (Account, Policy, Claim, Line)
 │   │   ├── dto/                # Data transfer objects
 │   │   ├── entity/             # JPA entities
 │   │   ├── exception/          # Global exception handling
 │   │   ├── model/              # Enums and response models
 │   │   ├── repository/         # Spring Data repositories
 │   │   └── service/            # Business logic
-│   └── test/                   # JUnit 5 test suite
+│   ├── src/test/               # JUnit 5 test suite
+│   └── pom.xml                 # Maven dependencies + Spotless plugin
 ├── demo-ui/                    # React frontend
 │   ├── src/
 │   │   ├── api/                # Axios API client
 │   │   ├── context/            # Auth context (JWT storage)
-│   │   └── pages/              # Login, Register, Accounts, Policies, Claims
+│   │   └── pages/              # Home, Login, Register, Accounts, Policies, Claims, Lines
 │   ├── Dockerfile
 │   └── nginx.conf
+├── docker/
+│   └── init.sql                # MySQL schema + seed data
 ├── Dockerfile                  # Backend Docker build
-└── docker-compose.yml          # Full stack orchestration
+├── docker-compose.yml          # Full stack orchestration
+└── .git/hooks/pre-commit       # Auto-format code with Spotless
 ```
 
 ---
@@ -67,6 +73,10 @@ docker-compose up --build
 | API      | http://localhost:8080     |
 | Swagger  | http://localhost:8080/swagger-ui/index.html |
 | MySQL    | localhost:3306            |
+
+The MySQL database is automatically initialized with:
+- Schema for all tables (account, policy, claim, line)
+- Seed data for 4 insurance lines (Auto, Home, Life, Health)
 
 To stop:
 ```bash
@@ -94,15 +104,19 @@ docker-compose down -v
 # Create the database first
 mysql -u root -p -e "CREATE DATABASE insurance;"
 
+# Optionally run the init script
+mysql -u root -p insurance < docker/init.sql
+
 # Run the app
-mvn spring-boot:run
+cd demo-api
+./mvnw spring-boot:run
 ```
 
 The API starts on `http://localhost:8080`.
 
 Override DB credentials if needed:
 ```bash
-DB_HOST=localhost DB_PORT=3306 DB_NAME=insurance DB_USERNAME=root DB_PASSWORD=yourpassword mvn spring-boot:run
+DB_HOST=localhost DB_PORT=3306 DB_NAME=insurance DB_USERNAME=root DB_PASSWORD=yourpassword ./mvnw spring-boot:run
 ```
 
 ### Frontend
@@ -193,25 +207,82 @@ Authorization: Bearer <token>
 
 Claim statuses: `SUBMITTED`, `IN_PROGRESS`, `APPROVED`, `DENIED`
 
+### Lines
+| Method | Endpoint           | Description          | Auth   |
+|--------|--------------------|----------------------|--------|
+| GET    | /api/lines/        | List all lines       | JWT    |
+| GET    | /api/lines/{id}    | Get line by ID       | JWT    |
+| POST   | /api/lines/        | Create line          | JWT    |
+| PUT    | /api/lines/{id}    | Update line          | JWT    |
+| DELETE | /api/lines/{id}    | Delete line          | JWT    |
+
+Lines represent insurance product types (Auto, Home, Health, Life) with coverage ranges.
+
 ---
 
 ## Running Tests
 
 ```bash
-mvn test
+cd demo-api
+./mvnw test
 ```
 
 The test suite uses H2 in-memory database — no MySQL required.
 
 Tests cover:
-- Service layer unit tests (Mockito) for Account, Policy, and Claim
-- Controller unit tests (direct invocation) for all four controllers
+- Service layer unit tests (Mockito) for Account, Policy, Claim, and Line
+- Controller unit tests (direct invocation) for all controllers
+
+---
+
+## Code Formatting
+
+### Backend (Java)
+
+The project uses **Spotless** with Eclipse formatter to enforce consistent code style.
+
+#### Format code manually
+```bash
+cd demo-api
+./mvnw spotless:apply
+```
+
+#### Check formatting
+```bash
+cd demo-api
+./mvnw spotless:check
+```
+
+### Frontend (JavaScript/React)
+
+The project uses **ESLint** with React plugins for code quality and consistency.
+
+#### Lint code manually
+```bash
+cd demo-ui
+npm run lint
+```
+
+#### Auto-fix linting issues
+```bash
+cd demo-ui
+npm run lint:fix
+```
+
+### Pre-commit hook
+A git pre-commit hook automatically formats and lints all code before every commit:
+- Located at `.git/hooks/pre-commit`
+- Runs `mvn spotless:apply` for Java files
+- Runs `npm run lint:fix` for JavaScript/React files
+- Re-stages formatted files
+
+This ensures no unformatted or linting-error code ever touches the repository.
 
 ---
 
 ## Configuration
 
-All backend config is in `src/main/resources/application.properties`.
+All backend config is in `demo-api/src/main/resources/application.properties`.
 
 | Property | Default | Description |
 |----------|---------|-------------|
@@ -233,3 +304,16 @@ The app uses Java 21 virtual threads (Project Loom) for improved concurrency und
 - `VirtualThreadConfig` bean — Spring's async executor also uses virtual threads
 
 This allows the app to handle significantly more concurrent requests without increasing platform thread count, particularly beneficial for the blocking JPA/MySQL I/O calls.
+
+---
+
+## UI Features
+
+- **Home Page**: Landing page with hero section, feature cards, and CTAs
+- **Authentication**: Login/Register with JWT token management
+- **Accounts**: View and manage user accounts
+- **Policies**: Create and manage insurance policies
+- **Claims**: File and track insurance claims
+- **Lines**: Manage insurance product lines (Auto, Home, Health, Life)
+
+The "Insurance Management" title in the nav bar links back to the home page.

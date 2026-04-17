@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getAccounts, deleteAccount } from '../api/client'
 
 export default function Accounts() {
