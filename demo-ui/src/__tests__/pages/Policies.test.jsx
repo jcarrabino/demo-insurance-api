@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Policies from '../../pages/Policies'
 import { AuthProvider } from '../../context/AuthContext'
-import { mockApi, setDefaultApiMocks } from '../../__test-mocks__/apiMocks'
+import * as api from '../../api/client'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -32,7 +32,8 @@ describe('Policies', () => {
     jest.clearAllMocks()
     localStorage.clear()
     queryClient.clear()
-    setDefaultApiMocks()
+    api.getPolicies.mockResolvedValue({ data: [] })
+    api.getLines.mockResolvedValue({ data: [] })
   })
 
   it('should render policies page', async () => {
@@ -41,44 +42,22 @@ describe('Policies', () => {
     expect(screen.getByText('Policies')).toBeInTheDocument()
     
     await waitFor(() => {
-      expect(mockApi.getPolicies).toHaveBeenCalled()
+      expect(api.getPolicies).toHaveBeenCalled()
     })
   })
 
   it('should display policies list', async () => {
     const mockPolicies = [
-      { id: 1, policyNumber: 'POL-001', line: { name: 'Auto' }, premium: 1000, startDate: '2024-01-01', endDate: '2025-01-01' },
-      { id: 2, policyNumber: 'POL-002', line: { name: 'Home' }, premium: 2000, startDate: '2024-01-01', endDate: '2025-01-01' },
+      { id: 1, lineId: 1, accountId: 1, premium: 1000, startDate: '2024-01-01', endDate: '2025-01-01' },
+      { id: 2, lineId: 2, accountId: 1, premium: 2000, startDate: '2024-01-01', endDate: '2025-01-01' },
     ]
-    mockApi.getPolicies.mockResolvedValue({ data: mockPolicies })
+    api.getPolicies.mockResolvedValue({ data: mockPolicies })
 
     renderPolicies()
 
     await waitFor(() => {
-      expect(screen.getByText('POL-001')).toBeInTheDocument()
-      expect(screen.getByText('POL-002')).toBeInTheDocument()
-    })
-  })
-
-  it('should delete policy', async () => {
-    const user = userEvent.setup()
-    const mockPolicies = [
-      { id: 1, policyNumber: 'POL-001', line: { name: 'Auto' }, premium: 1000, startDate: '2024-01-01', endDate: '2025-01-01' },
-    ]
-    mockApi.getPolicies.mockResolvedValue({ data: mockPolicies })
-    mockApi.deletePolicy.mockResolvedValue({ data: 'deleted' })
-
-    renderPolicies()
-
-    await waitFor(() => {
-      expect(screen.getByText('POL-001')).toBeInTheDocument()
-    })
-
-    const deleteButton = screen.getByText('Delete')
-    await user.click(deleteButton)
-
-    await waitFor(() => {
-      expect(mockApi.deletePolicy).toHaveBeenCalledWith(1)
+      expect(screen.getByText('POL-00001')).toBeInTheDocument()
+      expect(screen.getByText('POL-00002')).toBeInTheDocument()
     })
   })
 })

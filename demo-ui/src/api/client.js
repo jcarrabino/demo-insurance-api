@@ -14,6 +14,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     
+    console.log('Request:', config.method.toUpperCase(), config.url, 'Headers:', config.headers)
     return config
   },
   (error) => {
@@ -26,16 +27,22 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token is expired or invalid - clear auth data and redirect to home
-      console.warn('Unauthorized request - token expired or invalid, redirecting to home')
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      // Don't redirect if we're already on the login page or if this is a login request
+      const isLoginRequest = error.config?.url === '/login'
+      const isOnLoginPage = window.location.pathname === '/login' || window.location.pathname === '/'
       
-      // Dispatch custom event for AuthContext to handle
-      window.dispatchEvent(new Event('auth:logout'))
-      
-      // Redirect to home page
-      window.location.href = '/'
+      if (!isLoginRequest && !isOnLoginPage) {
+        // Token is expired or invalid - clear auth data and redirect to home
+        console.warn('Unauthorized request - token expired or invalid, redirecting to home')
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        
+        // Dispatch custom event for AuthContext to handle
+        window.dispatchEvent(new Event('auth:logout'))
+        
+        // Redirect to home page
+        window.location.href = '/'
+      }
     }
     return Promise.reject(error)
   }
@@ -46,9 +53,7 @@ export default api
 // Auth
 export const register = (data) => api.post('/register', data)
 export const login = (email, password) =>
-  api.get('/login', {
-    headers: { Authorization: 'Basic ' + btoa(`${email}:${password}`) }
-  })
+  api.post('/login', { email, password })
 
 // Accounts
 export const getAccounts = () => api.get('/api/accounts/')

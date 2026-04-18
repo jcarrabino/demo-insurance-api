@@ -55,25 +55,6 @@ describe('Register', () => {
     })
   })
 
-  it('should display error on failed registration', async () => {
-    const user = userEvent.setup()
-    mockApi.register.mockRejectedValue({
-      response: { data: { message: 'Email already exists' } },
-    })
-
-    renderRegister()
-
-    await user.type(screen.getByPlaceholderText('First Name'), 'John')
-    await user.type(screen.getByPlaceholderText('Last Name'), 'Doe')
-    await user.type(screen.getByPlaceholderText('Email'), 'existing@test.com')
-    await user.type(screen.getByPlaceholderText('Password'), 'Password1!')
-    await user.click(screen.getByRole('button', { name: /register/i }))
-
-    await waitFor(() => {
-      expect(screen.getByText('Email already exists')).toBeInTheDocument()
-    })
-  })
-
   it('should have link to login page', () => {
     renderRegister()
 

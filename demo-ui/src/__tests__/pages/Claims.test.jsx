@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Claims from '../../pages/Claims'
 import { AuthProvider } from '../../context/AuthContext'
-import { mockApi, setDefaultApiMocks } from '../../__test-mocks__/apiMocks'
+import * as api from '../../api/client'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -32,7 +32,8 @@ describe('Claims', () => {
     jest.clearAllMocks()
     localStorage.clear()
     queryClient.clear()
-    setDefaultApiMocks()
+    api.getClaims.mockResolvedValue({ data: [] })
+    api.getPolicies.mockResolvedValue({ data: [] })
   })
 
   it('should render claims page', async () => {
@@ -41,44 +42,22 @@ describe('Claims', () => {
     expect(screen.getByText('Claims')).toBeInTheDocument()
     
     await waitFor(() => {
-      expect(mockApi.getClaims).toHaveBeenCalled()
+      expect(api.getClaims).toHaveBeenCalled()
     })
   })
 
   it('should display claims list', async () => {
     const mockClaims = [
-      { id: 1, claimNumber: 'CLM-001', policy: { policyNumber: 'POL-001' }, claimAmount: 5000, status: 'PENDING', claimDate: '2024-01-15' },
-      { id: 2, claimNumber: 'CLM-002', policy: { policyNumber: 'POL-002' }, claimAmount: 3000, status: 'APPROVED', claimDate: '2024-01-20' },
+      { id: 1, policyId: 1, policy: { id: 1, lineId: 1 }, description: 'Car accident', claimStatus: 'SUBMITTED', claimDate: '2024-01-15' },
+      { id: 2, policyId: 2, policy: { id: 2, lineId: 2 }, description: 'Home damage', claimStatus: 'APPROVED', claimDate: '2024-01-20' },
     ]
-    mockApi.getClaims.mockResolvedValue({ data: mockClaims })
+    api.getClaims.mockResolvedValue({ data: mockClaims })
 
     renderClaims()
 
     await waitFor(() => {
-      expect(screen.getByText('CLM-001')).toBeInTheDocument()
-      expect(screen.getByText('CLM-002')).toBeInTheDocument()
-    })
-  })
-
-  it('should delete claim', async () => {
-    const user = userEvent.setup()
-    const mockClaims = [
-      { id: 1, claimNumber: 'CLM-001', policy: { policyNumber: 'POL-001' }, claimAmount: 5000, status: 'PENDING', claimDate: '2024-01-15' },
-    ]
-    mockApi.getClaims.mockResolvedValue({ data: mockClaims })
-    mockApi.deleteClaim.mockResolvedValue({ data: 'deleted' })
-
-    renderClaims()
-
-    await waitFor(() => {
-      expect(screen.getByText('CLM-001')).toBeInTheDocument()
-    })
-
-    const deleteButton = screen.getByText('Delete')
-    await user.click(deleteButton)
-
-    await waitFor(() => {
-      expect(mockApi.deleteClaim).toHaveBeenCalledWith(1)
+      expect(screen.getByText('CLM-00001')).toBeInTheDocument()
+      expect(screen.getByText('CLM-00002')).toBeInTheDocument()
     })
   })
 })

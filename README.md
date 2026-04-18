@@ -395,7 +395,7 @@ insurance-management-system/
 │   ├── jest.config.js                  # Jest configuration
 │   ├── eslint.config.js                # ESLint configuration
 │   ├── package.json                    # npm dependencies
-│   └── .env.example                    # Environment variables template
+│   └── .env.local                    # Environment variables template
 │
 ├── docker/
 │   └── init.sql                        # Database schema and seed data
@@ -674,7 +674,7 @@ DB_HOST=myhost ./mvnw spring-boot:run
 
 ### Frontend Configuration
 
-File: `demo-ui/.env.local` (create from `.env.example`)
+File: `demo-ui/.env.local` (create from `.env.local`)
 
 ```env
 # API URL for proxying requests

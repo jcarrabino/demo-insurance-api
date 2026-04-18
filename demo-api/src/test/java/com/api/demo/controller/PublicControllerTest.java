@@ -2,6 +2,8 @@ package com.api.demo.controller;
 
 import com.api.demo.dto.AccountDTO;
 import com.api.demo.service.AccountService;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,9 +12,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
 import java.time.LocalDate;
+import java.util.Base64;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -23,7 +29,11 @@ class PublicControllerTest {
 	@Mock
 	AccountService accountService;
 	@Mock
+	AuthenticationManager authenticationManager;
+	@Mock
 	Authentication authentication;
+	@Mock
+	HttpServletResponse response;
 	@InjectMocks
 	PublicController publicController;
 
@@ -60,12 +70,22 @@ class PublicControllerTest {
 
 	@Test
     void login_returns200() {
+        PublicController.LoginRequest loginRequest = new PublicController.LoginRequest();
+        loginRequest.setEmail("john@example.com");
+        loginRequest.setPassword("Password1@");
+        
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(authentication);
         when(authentication.getName()).thenReturn("john@example.com");
+        when(authentication.getAuthorities()).thenReturn(Collections.emptyList());
         when(accountService.findByEmail("john@example.com")).thenReturn(accountDTO);
 
-        ResponseEntity<AccountDTO> response = publicController.getLoggedInClientDetailsHandler(authentication);
+        ResponseEntity<?> result = publicController.login(loginRequest, response);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getFirstName()).isEqualTo("John");
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody()).isInstanceOf(AccountDTO.class);
+        AccountDTO body = (AccountDTO) result.getBody();
+        assertThat(body.getFirstName()).isEqualTo("John");
+        verify(response).setHeader(eq("Authorization"), anyString());
     }
 }

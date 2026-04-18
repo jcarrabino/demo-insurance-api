@@ -2,6 +2,7 @@
 # Start development environment with hot reload
 
 echo "Stopping any running containers..."
+docker stop insurance-ui-dev
 docker-compose down --volumes --remove-orphans
 
 echo "Starting services with dev profile..."

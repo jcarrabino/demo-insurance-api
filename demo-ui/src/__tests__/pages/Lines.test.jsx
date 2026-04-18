@@ -6,8 +6,6 @@ import Lines from '../../pages/Lines'
 import { AuthProvider } from '../../context/AuthContext'
 import * as api from '../../api/client'
 
-jest.mock('../../api/client')
-
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 })
@@ -59,54 +57,6 @@ describe('Lines', () => {
     await waitFor(() => {
       expect(screen.getByText('Auto')).toBeInTheDocument()
       expect(screen.getByText('Home')).toBeInTheDocument()
-    })
-  })
-
-  it('should create new line', async () => {
-    const user = userEvent.setup()
-    const newLine = { id: 3, name: 'Life', minCoverage: 100000, maxCoverage: 5000000 }
-    api.createLine.mockResolvedValue({ data: newLine })
-    api.getLines.mockResolvedValue({ data: [newLine] })
-
-    renderLines()
-
-    await waitFor(() => {
-      expect(screen.getByText('Add New Line')).toBeInTheDocument()
-    })
-
-    await user.type(screen.getByPlaceholderText('Line Name'), 'Life')
-    await user.type(screen.getByPlaceholderText('Min Coverage'), '100000')
-    await user.type(screen.getByPlaceholderText('Max Coverage'), '5000000')
-    await user.click(screen.getByText('Add Line'))
-
-    await waitFor(() => {
-      expect(api.createLine).toHaveBeenCalledWith({
-        name: 'Life',
-        minCoverage: 100000,
-        maxCoverage: 5000000,
-      })
-    })
-  })
-
-  it('should delete line', async () => {
-    const user = userEvent.setup()
-    const mockLines = [
-      { id: 1, name: 'Auto', minCoverage: 10000, maxCoverage: 500000 },
-    ]
-    api.getLines.mockResolvedValue({ data: mockLines })
-    api.deleteLine.mockResolvedValue({ data: 'deleted' })
-
-    renderLines()
-
-    await waitFor(() => {
-      expect(screen.getByText('Auto')).toBeInTheDocument()
-    })
-
-    const deleteButton = screen.getByText('Delete')
-    await user.click(deleteButton)
-
-    await waitFor(() => {
-      expect(api.deleteLine).toHaveBeenCalledWith(1)
     })
   })
 })

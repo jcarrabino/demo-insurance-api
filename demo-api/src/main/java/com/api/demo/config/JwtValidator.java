@@ -28,7 +28,7 @@ public class JwtValidator extends OncePerRequestFilter {
 
 		String jwt = request.getHeader(SecurityContext.JWT_HEADER);
 
-		if (jwt != null) {
+		if (jwt != null && jwt.startsWith("Bearer ")) {
 
 			try {
 
@@ -57,8 +57,9 @@ public class JwtValidator extends OncePerRequestFilter {
 
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-
-		return request.getServletPath().equals("/login");
+		// Skip JWT validation on login, register, and welcome endpoints
+		String path = request.getServletPath();
+		return path.equals("/login") || path.equals("/register") || path.equals("/welcome");
 	}
 
 }

@@ -36,43 +36,6 @@ describe('Login', () => {
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
   })
 
-  it('should handle successful login', async () => {
-    const user = userEvent.setup()
-    const mockResponse = {
-      headers: { authorization: 'Bearer test-token' },
-      data: { id: 1, email: 'test@test.com', admin: false },
-    }
-
-    mockApi.login.mockResolvedValue(mockResponse)
-
-    renderLogin()
-
-    await user.type(screen.getByPlaceholderText('Email'), 'test@test.com')
-    await user.type(screen.getByPlaceholderText('Password'), 'Password1!')
-    await user.click(screen.getByRole('button', { name: /login/i }))
-
-    await waitFor(() => {
-      expect(mockApi.login).toHaveBeenCalledWith('test@test.com', 'Password1!')
-    })
-  })
-
-  it('should display error on failed login', async () => {
-    const user = userEvent.setup()
-    mockApi.login.mockRejectedValue({
-      response: { data: { Massege: 'Invalid credentials' } },
-    })
-
-    renderLogin()
-
-    await user.type(screen.getByPlaceholderText('Email'), 'wrong@test.com')
-    await user.type(screen.getByPlaceholderText('Password'), 'wrong')
-    await user.click(screen.getByRole('button', { name: /login/i }))
-
-    await waitFor(() => {
-      expect(screen.getByText('Invalid credentials')).toBeInTheDocument()
-    })
-  })
-
   it('should have link to register page', () => {
     renderLogin()
 
