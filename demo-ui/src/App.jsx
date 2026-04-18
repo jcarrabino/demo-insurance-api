@@ -1,14 +1,20 @@
 import { Routes, Route, Navigate, NavLink, useNavigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { lazy, Suspense } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Accounts from './pages/Accounts'
-import Policies from './pages/Policies'
-import Claims from './pages/Claims'
-import Lines from './pages/Lines'
-import CoverageCalculator from './pages/CoverageCalculator'
+import ErrorBoundary from './components/ErrorBoundary'
+import Spinner from './components/Spinner'
+
+// Lazy load pages for code splitting
+const Home = lazy(() => import('./pages/Home'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const Accounts = lazy(() => import('./pages/Accounts'))
+const Policies = lazy(() => import('./pages/Policies'))
+const Claims = lazy(() => import('./pages/Claims'))
+const Lines = lazy(() => import('./pages/Lines'))
+const CoverageCalculator = lazy(() => import('./pages/CoverageCalculator'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,21 +73,26 @@ function AdminRoute({ children }) {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Nav />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/accounts" element={<AdminRoute><Accounts /></AdminRoute>} />
-          <Route path="/policies" element={<PrivateRoute><Policies /></PrivateRoute>} />
-          <Route path="/claims" element={<PrivateRoute><Claims /></PrivateRoute>} />
-          <Route path="/lines" element={<AdminRoute><Lines /></AdminRoute>} />
-          <Route path="/coverage" element={<PrivateRoute><CoverageCalculator /></PrivateRoute>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Nav />
+          <Suspense fallback={<div style={{ textAlign: 'center', padding: '2rem' }}><Spinner /></div>}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/accounts" element={<AdminRoute><Accounts /></AdminRoute>} />
+              <Route path="/policies" element={<PrivateRoute><Policies /></PrivateRoute>} />
+              <Route path="/claims" element={<PrivateRoute><Claims /></PrivateRoute>} />
+              <Route path="/lines" element={<AdminRoute><Lines /></AdminRoute>} />
+              <Route path="/coverage" element={<PrivateRoute><CoverageCalculator /></PrivateRoute>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </AuthProvider>
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }

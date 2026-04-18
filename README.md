@@ -11,13 +11,31 @@ A modern, full-stack Demo Insurance App application demonstrating enterprise-gra
 
 ---
 
-## 📚 Documentation
+## 🆕 Recent Improvements
 
-- **[Quick Start Guide](QUICK_START.md)** - Get up and running in 3 steps
-- **[Development Guide](DEVELOPMENT.md)** - Detailed development workflow and troubleshooting
-- **[Docker Profiles Guide](DOCKER_PROFILES.md)** - Understanding dev vs prod modes
-- **[HMR Setup Guide](HMR_SETUP.md)** - Hot Module Replacement configuration
-- **[API Documentation](http://localhost:8080/swagger-ui/index.html)** - Interactive API docs (when running)
+This application has been enhanced with enterprise-grade best practices:
+
+### Backend Enhancements
+- ✅ Added Spring Boot Actuator for monitoring (`/actuator/health`, `/actuator/metrics`)
+- ✅ Implemented Caffeine caching strategy for improved performance
+- ✅ Added comprehensive OpenAPI/Swagger documentation annotations
+- ✅ Implemented request/response logging filter
+- ✅ Added rate limiting with Bucket4j (100 requests/minute per IP)
+- ✅ Environment-based CORS configuration
+- ✅ Created integration tests for full API testing
+- ✅ API versioning strategy configuration
+
+### Frontend Enhancements
+- ✅ Added Error Boundary for graceful error handling
+- ✅ Environment variable configuration (`.env` files)
+- ✅ Enhanced loading states across all pages
+- ✅ Implemented code splitting with React.lazy()
+- ✅ Added PropTypes for runtime type checking
+- ✅ Improved accessibility (ARIA attributes, semantic HTML)
+- ✅ Integrated React Query DevTools (development only)
+- ✅ Added React Hook Form for better form validation
+- ✅ Created centralized error handling UI
+- ✅ **Security**: Migrated from localStorage to sessionStorage (XSS mitigation)
 
 ---
 

@@ -40,7 +40,10 @@ describe('Login', () => {
     const user = userEvent.setup()
     const mockResponse = {
       headers: { authorization: 'Bearer test-token' },
-      data: { id: 1, email: 'test@test.com', admin: false },
+      data: { 
+        account: { id: 1, email: 'test@test.com', admin: false },
+        message: 'Login successful'
+      },
     }
 
     mockApi.login.mockResolvedValue(mockResponse)
@@ -59,7 +62,7 @@ describe('Login', () => {
   it('should display error on failed login', async () => {
     const user = userEvent.setup()
     mockApi.login.mockRejectedValue({
-      response: { data: { Massege: 'Invalid credentials' } },
+      response: { data: { message: 'Invalid credentials' } },
     })
 
     renderLogin()

@@ -2,10 +2,10 @@
 REM Start production environment
 
 echo Stopping any running containers...
-docker-compose down --volumes --remove-orphans
+docker-compose --profile prod down
 
 echo Starting services in production mode...
-docker-compose --profile prod up --build -d --force-recreate
+docker-compose --profile prod up --build -d
 
 echo Waiting for services to be ready...
 timeout /t 5 /nobreak > nul

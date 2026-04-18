@@ -1,14 +1,17 @@
 import axios from 'axios'
+import { secureStorage } from '../utils/secureStorage'
 
-const api = axios.create({ baseURL: '' })
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+
+const api = axios.create({ baseURL: API_BASE_URL })
 
 // Attach JWT Bearer token to every request if present
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = secureStorage.getToken()
     
     // Only add Bearer token if:
-    // 1. Token exists in localStorage
+    // 1. Token exists in sessionStorage
     // 2. Authorization header is not already set (e.g., for Basic auth in login)
     if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`
@@ -28,8 +31,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token is expired or invalid - clear auth data and redirect to home
       console.warn('Unauthorized request - token expired or invalid, redirecting to home')
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      secureStorage.clear()
       
       // Dispatch custom event for AuthContext to handle
       window.dispatchEvent(new Event('auth:logout'))
@@ -46,9 +48,7 @@ export default api
 // Auth
 export const register = (data) => api.post('/register', data)
 export const login = (email, password) =>
-  api.get('/login', {
-    headers: { Authorization: 'Basic ' + btoa(`${email}:${password}`) }
-  })
+  api.post('/api/v1/auth/login', { email, password })
 
 // Accounts
 export const getAccounts = () => api.get('/api/accounts/')

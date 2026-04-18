@@ -1,26 +1,23 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { secureStorage } from '../utils/secureStorage'
 
 /* eslint-disable react-refresh/only-export-components */
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem('token'))
-  const [user, setUser] = useState(() => {
-    const u = localStorage.getItem('user')
-    return u ? JSON.parse(u) : null
-  })
+  const [token, setToken] = useState(() => secureStorage.getToken())
+  const [user, setUser] = useState(() => secureStorage.getUser())
 
   const saveAuth = (jwt, userData) => {
-    localStorage.setItem('token', jwt)
-    localStorage.setItem('user', JSON.stringify(userData))
+    secureStorage.setToken(jwt)
+    secureStorage.setUser(userData)
     setToken(jwt)
     setUser(userData)
   }
 
   const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    secureStorage.clear()
     setToken(null)
     setUser(null)
   }

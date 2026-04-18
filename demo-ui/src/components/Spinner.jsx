@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types'
+
 export default function Spinner({ size = 'md', message = 'Loading...' }) {
   const sizeClasses = {
     sm: 'w-4 h-4 border-2',
@@ -6,9 +8,14 @@ export default function Spinner({ size = 'md', message = 'Loading...' }) {
   }
 
   return (
-    <div className="spinner-container">
-      <div className={`spinner ${sizeClasses[size]}`}></div>
+    <div className="spinner-container" role="status" aria-live="polite">
+      <div className={`spinner ${sizeClasses[size]}`} aria-label="Loading"></div>
       {message && <p className="spinner-message">{message}</p>}
     </div>
   )
+}
+
+Spinner.propTypes = {
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  message: PropTypes.string
 }
