@@ -1,11 +1,15 @@
 package com.api.demo.config;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,16 +20,28 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import com.api.demo.service.AccountUserDetailsService;
+
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebMvc
+@EnableCaching
 public class AppConfig {
 
+	@Value("${cors.allowed.origins}")
+	private String corsOrigins;
+
 	public static final String[] PUBLIC_API = {"/v3/api-docs", "/api/v1/auth/**", "/v2/api-docs",
-			"/swagger-resources/**", "/swagger-ui/**", "/webjars/**"
+			"/swagger-resources/**", "/swagger-ui/**", "/webjars/**", "/actuator/**"
 
 	};
+
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		return config.getAuthenticationManager();
+	}
 
 	@Bean
 	public SecurityFilterChain securityConfigrationChain(HttpSecurity http) throws Exception {
@@ -33,11 +49,14 @@ public class AppConfig {
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.csrf(csrf -> csrf.disable())
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/swagger-ui*/**", "/v3/api-docs/**").permitAll()
-						.requestMatchers(HttpMethod.POST, "/register").permitAll()
-						.requestMatchers(HttpMethod.GET, "/welcome", "/login").permitAll().anyRequest().authenticated())
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/swagger-ui*/**", "/v3/api-docs/**", "/actuator/**").permitAll()
+						.requestMatchers(HttpMethod.POST, "/register", "/api/v1/auth/login").permitAll()
+						.requestMatchers(HttpMethod.GET, "/welcome").permitAll()
+						.anyRequest().authenticated())
 				.addFilterAfter(new JwtGenerator(), BasicAuthenticationFilter.class)
-				.addFilterBefore(new JwtValidator(), BasicAuthenticationFilter.class).formLogin(form -> form.disable())
+				.addFilterBefore(new JwtValidator(), BasicAuthenticationFilter.class)
+				.formLogin(form -> form.disable())
 				.httpBasic(Customizer.withDefaults());
 
 		return http.build();
@@ -47,7 +66,7 @@ public class AppConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "http://localhost"));
+		config.setAllowedOrigins(Arrays.asList(corsOrigins.split(",")));
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setExposedHeaders(List.of("Authorization", "authorization"));

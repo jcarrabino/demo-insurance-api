@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import com.api.demo.model.Response;
 
 @ControllerAdvice
-public class GlobelExceptionHandler {
+public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<Response> responseNotFountException(ResourceNotFoundException rs) {
