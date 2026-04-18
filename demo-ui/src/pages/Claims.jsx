@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getClaims, createClaim, updateClaim, deleteClaim, getPolicies, getAccounts } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useEditedFields } from '../hooks/useEditedFields'
 import Spinner from '../components/Spinner'
 
 const STATUSES = ['SUBMITTED', 'IN_PROGRESS', 'APPROVED', 'DENIED']
@@ -20,6 +21,7 @@ export default function Claims() {
   const [editingClaim, setEditingClaim] = useState(null)
   const [editForm, setEditForm] = useState(emptyEdit)
   const [isLoading, setIsLoading] = useState(true)
+  const { trackEdit, getEditedData, reset: resetEditedFields } = useEditedFields({})
 
   const load = async () => {
     setIsLoading(true)
@@ -89,6 +91,7 @@ export default function Claims() {
       claimDate: claim.claimDate || '', // Include for PUT but make non-editable
       claimStatus: claim.claimStatus || 'SUBMITTED'
     })
+    resetEditedFields()
     setError('')
     setSuccess('')
   }
@@ -98,16 +101,16 @@ export default function Claims() {
     setEditForm(emptyEdit)
   }
 
-  const setEdit = (f) => (e) => setEditForm(p => ({ ...p, [f]: e.target.value }))
+  const setEdit = (f) => (e) => {
+    trackEdit(f)
+    setEditForm(p => ({ ...p, [f]: e.target.value }))
+  }
 
   const handleUpdate = async (e) => {
     e.preventDefault(); setError(''); setSuccess('')
     try {
       const { id, ...updateData } = editForm
-      // Only send fields that are provided (editable fields)
-      const partialData = {}
-      if (updateData.description) partialData.description = updateData.description
-      if (updateData.claimStatus) partialData.claimStatus = updateData.claimStatus
+      const partialData = getEditedData(updateData)
       
       await updateClaim(id, partialData)
       setSuccess('Claim updated')

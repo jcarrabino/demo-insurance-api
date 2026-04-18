@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAccounts, updateAccount, deleteAccount } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useEditedFields } from '../hooks/useEditedFields'
 import Spinner from '../components/Spinner'
 
 export default function Accounts() {
@@ -11,6 +12,7 @@ export default function Accounts() {
   const [editForm, setEditForm] = useState({})
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const { trackEdit, getEditedData, reset: resetEditedFields } = useEditedFields({})
 
   const { data: accounts, isLoading } = useQuery({
     queryKey: ['accounts'],
@@ -62,28 +64,20 @@ export default function Accounts() {
         country: account.address?.country || ''
       },
     })
+    resetEditedFields()
     setError('')
   }
 
   const handleUpdate = (acc) => {
     const {id} = acc;
-    // Build update data with only the fields that should be updated
-    const updateData = {}
+    const updateData = getEditedData(editForm)
     
-    // Always include these fields if they have values
-    if (editForm.firstName) updateData.firstName = editForm.firstName
-    if (editForm.middleName) updateData.middleName = editForm.middleName
-    if (editForm.lastName) updateData.lastName = editForm.lastName
-    if (editForm.phoneNumber) updateData.phoneNumber = editForm.phoneNumber
-    if (editForm.dateOfBirth) updateData.dateOfBirth = editForm.dateOfBirth
-    if (editForm.address) updateData.address = editForm.address
-    
-    // Only include password if it was changed
+    // Only include password if it was edited and not empty
     if (editForm.password && editForm.password.trim() !== '') {
       updateData.password = editForm.password
     }
 
-    console.log(updateData)
+    console.log('Sending only edited fields:', updateData)
     
     updateMutation.mutate({ id, data: updateData })
   }
@@ -129,7 +123,10 @@ export default function Accounts() {
                 <input
                   placeholder="First Name"
                   value={editForm.firstName}
-                  onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                  onChange={(e) => {
+                    trackEdit('firstName')
+                    setEditForm({ ...editForm, firstName: e.target.value })
+                  }}
                   minLength="2"
                   maxLength="50"
                   required
@@ -138,14 +135,20 @@ export default function Accounts() {
                 <input
                   placeholder="Middle Name"
                   value={editForm.middleName}
-                  onChange={(e) => setEditForm({ ...editForm, middleName: e.target.value })}
+                  onChange={(e) => {
+                    trackEdit('middleName')
+                    setEditForm({ ...editForm, middleName: e.target.value })
+                  }}
                   maxLength="50"
                 />
                 <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Last Name *</label>
                 <input
                   placeholder="Last Name"
                   value={editForm.lastName}
-                  onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                  onChange={(e) => {
+                    trackEdit('lastName')
+                    setEditForm({ ...editForm, lastName: e.target.value })
+                  }}
                   minLength="2"
                   maxLength="50"
                   required
@@ -155,7 +158,10 @@ export default function Accounts() {
                   type="tel"
                   placeholder="Phone (10 digits)"
                   value={editForm.phoneNumber || ''}
-                  onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                  onChange={(e) => {
+                    trackEdit('phoneNumber')
+                    setEditForm({ ...editForm, phoneNumber: e.target.value })
+                  }}
                   pattern="[0-9]{10}"
                   maxLength="10"
                 />
@@ -164,7 +170,10 @@ export default function Accounts() {
                   type="date"
                   placeholder="Date of Birth"
                   value={editForm.dateOfBirth || ''}
-                  onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
+                  onChange={(e) => {
+                    trackEdit('dateOfBirth')
+                    setEditForm({ ...editForm, dateOfBirth: e.target.value })
+                  }}
                   max={new Date().toISOString().split('T')[0]}
                 />
                 <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>New Password (optional)</label>
@@ -172,38 +181,56 @@ export default function Accounts() {
                   type="password"
                   placeholder="Leave blank to keep current password"
                   value={editForm.password || ''}
-                  onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                  onChange={(e) => {
+                    trackEdit('password')
+                    setEditForm({ ...editForm, password: e.target.value })
+                  }}
                   minLength="8"
                 />
                 <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Street</label>
                 <input
                   placeholder="Street"
                   value={editForm.address?.street || ''}
-                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, street: e.target.value } })}
+                  onChange={(e) => {
+                    trackEdit('address')
+                    setEditForm({ ...editForm, address: { ...editForm.address, street: e.target.value } })
+                  }}
                 />
                 <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>City</label>
                 <input
                   placeholder="City"
                   value={editForm.address?.city || ''}
-                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, city: e.target.value } })}
+                  onChange={(e) => {
+                    trackEdit('address')
+                    setEditForm({ ...editForm, address: { ...editForm.address, city: e.target.value } })
+                  }}
                 />
                 <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>State</label>
                 <input
                   placeholder="State"
                   value={editForm.address?.state || ''}
-                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, state: e.target.value } })}
+                  onChange={(e) => {
+                    trackEdit('address')
+                    setEditForm({ ...editForm, address: { ...editForm.address, state: e.target.value } })
+                  }}
                 />
                 <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Zip Code</label>
                 <input
                   placeholder="Zip Code"
                   value={editForm.address?.zipCode || ''}
-                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, zipCode: e.target.value } })}
+                  onChange={(e) => {
+                    trackEdit('address')
+                    setEditForm({ ...editForm, address: { ...editForm.address, zipCode: e.target.value } })
+                  }}
                 />
                 <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Country</label>
                 <input
                   placeholder="Country"
                   value={editForm.address?.country || ''}
-                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, country: e.target.value } })}
+                  onChange={(e) => {
+                    trackEdit('address')
+                    setEditForm({ ...editForm, address: { ...editForm.address, country: e.target.value } })
+                  }}
                 />
                 <div className="actions">
                   <button className="btn sm" onClick={() => handleUpdate(acc)}>Save</button>

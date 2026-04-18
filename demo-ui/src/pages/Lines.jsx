@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getLines, createLine, updateLine, deleteLine } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useEditedFields } from '../hooks/useEditedFields'
 import Spinner from '../components/Spinner'
 
 const empty = { name: '', description: '', maxCoverage: '', minCoverage: '' }
@@ -16,6 +17,7 @@ export default function Lines() {
   const [editingLine, setEditingLine] = useState(null)
   const [editForm, setEditForm] = useState(emptyEdit)
   const [isLoading, setIsLoading] = useState(true)
+  const { trackEdit, getEditedData, reset: resetEditedFields } = useEditedFields({})
 
   const load = async () => {
     setIsLoading(true)
@@ -64,6 +66,7 @@ export default function Lines() {
       maxCoverage: line.maxCoverage || '',
       minCoverage: line.minCoverage || ''
     })
+    resetEditedFields()
     setError('')
     setSuccess('')
   }
@@ -73,18 +76,16 @@ export default function Lines() {
     setEditForm(emptyEdit)
   }
 
-  const setEdit = (f) => (e) => setEditForm(p => ({ ...p, [f]: e.target.value }))
+  const setEdit = (f) => (e) => {
+    trackEdit(f)
+    setEditForm(p => ({ ...p, [f]: e.target.value }))
+  }
 
   const handleUpdate = async (e) => {
     e.preventDefault(); setError(''); setSuccess('')
     try {
       const { id, ...updateData } = editForm
-      // Only send fields that are provided
-      const partialData = {}
-      if (updateData.name) partialData.name = updateData.name
-      if (updateData.description !== undefined) partialData.description = updateData.description
-      if (updateData.maxCoverage) partialData.maxCoverage = updateData.maxCoverage
-      if (updateData.minCoverage) partialData.minCoverage = updateData.minCoverage
+      const partialData = getEditedData(updateData)
       
       await updateLine(id, partialData)
       setSuccess('Line updated')

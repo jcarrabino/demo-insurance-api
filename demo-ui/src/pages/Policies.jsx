@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getPolicies, createPolicy, updatePolicy, deletePolicy, getAccounts, getLines } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useEditedFields } from '../hooks/useEditedFields'
 import Spinner from '../components/Spinner'
 
 const empty = {
@@ -24,6 +25,7 @@ export default function Policies() {
   const [editingPolicy, setEditingPolicy] = useState(null)
   const [editForm, setEditForm] = useState(emptyEdit)
   const [isLoading, setIsLoading] = useState(true)
+  const { trackEdit, getEditedData, reset: resetEditedFields } = useEditedFields({})
 
   const load = async () => {
     setIsLoading(true)
@@ -100,6 +102,7 @@ export default function Policies() {
       startDate: policy.startDate || '',
       endDate: policy.endDate || ''
     })
+    resetEditedFields()
     setError('')
     setSuccess('')
   }
@@ -109,18 +112,16 @@ export default function Policies() {
     setEditForm(emptyEdit)
   }
 
-  const setEdit = (f) => (e) => setEditForm(p => ({ ...p, [f]: e.target.value }))
+  const setEdit = (f) => (e) => {
+    trackEdit(f)
+    setEditForm(p => ({ ...p, [f]: e.target.value }))
+  }
 
   const handleUpdate = async (e) => {
     e.preventDefault(); setError(''); setSuccess('')
     try {
       const { id, ...updateData } = editForm
-      // Only send fields that are provided
-      const partialData = {}
-      if (updateData.lineId) partialData.lineId = updateData.lineId
-      if (updateData.premium) partialData.premium = updateData.premium
-      if (updateData.startDate) partialData.startDate = updateData.startDate
-      if (updateData.endDate) partialData.endDate = updateData.endDate
+      const partialData = getEditedData(updateData)
       
       await updatePolicy(id, partialData)
       setSuccess('Policy updated')
