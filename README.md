@@ -24,11 +24,12 @@ A modern, full-stack Demo Insurance App application demonstrating enterprise-gra
 ## 🎯 Key Features
 
 ### 🔐 Authentication & Security
-- **Dual Authentication System**: HTTP Basic Auth for login, JWT Bearer tokens for API access
+- **JWT-Based Authentication**: Secure token-based authentication with automatic token management
 - **Role-Based Access Control (RBAC)**: Granular permissions for Admin and User roles
 - **Automatic Token Management**: Axios interceptors handle token attachment and 401 redirects
-- **Secure Password Storage**: BCrypt hashing with complexity validation
+- **Secure Password Storage**: BCrypt hashing with complexity validation (8-20 chars, uppercase, lowercase, number, special char)
 - **Authorization at Service Layer**: Business logic enforces ownership and admin checks
+- **No Browser Auth Popups**: Clean login experience with POST-based authentication
 
 ### 👥 User Management
 - **Self-Service Registration**: Account creation with comprehensive validation
@@ -430,29 +431,50 @@ Content-Type: application/json
   "email": "john@example.com",
   "password": "Password1@",
   "phoneNumber": "1234567890",
-  "about": "Test user",
-  "dateOfBirth": "1990-01-01"
+  "dateOfBirth": "1990-01-01",
+  "address": {
+    "street": "123 Main St",
+    "city": "New York",
+    "state": "NY",
+    "zipCode": "10001",
+    "country": "USA"
+  }
 }
 ```
 
 **Password Requirements:**
-- Minimum 8 characters
+- Minimum 8 characters, maximum 20 characters
 - At least one uppercase letter
 - At least one lowercase letter
 - At least one number
-- At least one special character
+- At least one special character (@$!%*?&)
 
 ### 2. Login (Get JWT Token)
 
 ```http
-GET /login
-Authorization: Basic <base64(email:password)>
+POST /login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "Password1@"
+}
 ```
 
 **Response:**
 ```http
 HTTP/1.1 200 OK
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "id": 1,
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "admin": false,
+  ...
+}
 ```
 
 The JWT token is returned in the `Authorization` response header.
@@ -466,8 +488,16 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Token Management:**
 - Frontend stores JWT in localStorage
-- Axios interceptor automatically attaches token to requests
-- 401 responses trigger automatic logout and redirect
+- Axios interceptor automatically attaches token to all requests
+- Token expires after ~8 hours (30,000,000 ms)
+- 401 responses trigger automatic logout and redirect to home page
+
+**Security Features:**
+- JWT tokens signed with HMAC-SHA256
+- Stateless authentication (no server-side sessions)
+- Role-based authorization (ROLE_USER, ROLE_ADMIN)
+- Password hashing with BCrypt
+- CORS configured for localhost development
 
 ---
 
@@ -478,7 +508,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/register` | Create new account | None |
-| GET | `/login` | Sign in, receive JWT | Basic Auth |
+| POST | `/login` | Sign in, receive JWT | None |
 | GET | `/welcome` | Health check | None |
 
 ### Account Management
