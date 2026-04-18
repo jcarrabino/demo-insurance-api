@@ -52,6 +52,12 @@ public class LineController {
 		return new ResponseEntity<>(lineService.update(id, lineDTO), HttpStatus.OK);
 	}
 
+	@PostMapping("/update/{id}")
+	public ResponseEntity<LineDTO> partialUpdateLine(@PathVariable("id") Integer id, @RequestBody LineDTO lineDTO) {
+		authService.requireAdmin();
+		return new ResponseEntity<>(lineService.partialUpdate(id, lineDTO), HttpStatus.OK);
+	}
+
 	@DeleteMapping("/{id}")
 	public ResponseEntity<String> deleteLine(@PathVariable("id") Integer id) {
 		authService.requireAdmin();

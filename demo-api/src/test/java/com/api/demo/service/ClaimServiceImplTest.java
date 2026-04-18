@@ -49,13 +49,11 @@ class ClaimServiceImplTest {
 	void setUp() {
 		claim = new Claim();
 		claim.setId(1);
-		claim.setClaimNumber("CLM-001");
 		claim.setDescription("Test claim");
 		claim.setClaimDate(LocalDate.now());
 		claim.setClaimStatus(ClaimStatus.SUBMITTED);
 
 		claimDTO = new ClaimDTO();
-		claimDTO.setClaimNumber("CLM-001");
 		claimDTO.setDescription("Test claim");
 		claimDTO.setClaimDate(LocalDate.now());
 		claimDTO.setClaimStatus(ClaimStatus.SUBMITTED);
@@ -73,7 +71,7 @@ class ClaimServiceImplTest {
         Claim result = claimService.createNewClaim(1, claimDTO);
 
         assertThat(result).isNotNull();
-        assertThat(result.getClaimNumber()).isEqualTo("CLM-001");
+        assertThat(result.getId()).isEqualTo(1);
         verify(claimRepository).save(any(Claim.class));
     }
 

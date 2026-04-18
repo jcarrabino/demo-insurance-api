@@ -2,10 +2,10 @@
 REM Start development environment with hot reload
 
 echo Stopping any running containers...
-docker-compose down
+docker-compose down --volumes --remove-orphans
 
 echo Starting services with dev profile...
-docker-compose --profile dev up --build -d
+docker-compose --profile dev up --build -d --force-recreate
 
 echo Waiting for services to be ready...
 timeout /t 5 /nobreak > nul

@@ -50,22 +50,42 @@ export default function Accounts() {
       firstName: account.firstName || '',
       middleName: account.middleName || '',
       lastName: account.lastName || '',
-      email: account.email || '',
       phoneNumber: account.phoneNumber || '',
       dateOfBirth: account.dateOfBirth || '',
-      address: account.address || {
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: ''
+      password: '', // New password (optional)
+      email: '',
+      address: {
+        street: account.address?.street || '',
+        city: account.address?.city || '',
+        state: account.address?.state || '',
+        zipCode: account.address?.zipCode || '',
+        country: account.address?.country || ''
       },
     })
     setError('')
   }
 
-  const handleUpdate = (id) => {
-    updateMutation.mutate({ id, data: editForm })
+  const handleUpdate = (acc) => {
+    const {id} = acc;
+    // Build update data with only the fields that should be updated
+    const updateData = {}
+    
+    // Always include these fields if they have values
+    if (editForm.firstName) updateData.firstName = editForm.firstName
+    if (editForm.middleName) updateData.middleName = editForm.middleName
+    if (editForm.lastName) updateData.lastName = editForm.lastName
+    if (editForm.phoneNumber) updateData.phoneNumber = editForm.phoneNumber
+    if (editForm.dateOfBirth) updateData.dateOfBirth = editForm.dateOfBirth
+    if (editForm.address) updateData.address = editForm.address
+    
+    // Only include password if it was changed
+    if (editForm.password && editForm.password.trim() !== '') {
+      updateData.password = editForm.password
+    }
+
+    console.log(updateData)
+    
+    updateMutation.mutate({ id, data: updateData })
   }
 
   const handleDelete = (id) => {
@@ -98,6 +118,14 @@ export default function Accounts() {
           <div className="card" key={acc.id}>
             {editingId === acc.id ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Email (Read-only)</label>
+                <input
+                  type="email"
+                  value={acc.email}
+                  disabled
+                  style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>First Name *</label>
                 <input
                   placeholder="First Name"
                   value={editForm.firstName}
@@ -106,12 +134,14 @@ export default function Accounts() {
                   maxLength="50"
                   required
                 />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Middle Name</label>
                 <input
                   placeholder="Middle Name"
                   value={editForm.middleName}
                   onChange={(e) => setEditForm({ ...editForm, middleName: e.target.value })}
                   maxLength="50"
                 />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Last Name *</label>
                 <input
                   placeholder="Last Name"
                   value={editForm.lastName}
@@ -120,13 +150,7 @@ export default function Accounts() {
                   maxLength="50"
                   required
                 />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  required
-                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Phone (10 digits)</label>
                 <input
                   type="tel"
                   placeholder="Phone (10 digits)"
@@ -135,6 +159,7 @@ export default function Accounts() {
                   pattern="[0-9]{10}"
                   maxLength="10"
                 />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Date of Birth</label>
                 <input
                   type="date"
                   placeholder="Date of Birth"
@@ -142,13 +167,46 @@ export default function Accounts() {
                   onChange={(e) => setEditForm({ ...editForm, dateOfBirth: e.target.value })}
                   max={new Date().toISOString().split('T')[0]}
                 />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>New Password (optional)</label>
+                <input
+                  type="password"
+                  placeholder="Leave blank to keep current password"
+                  value={editForm.password || ''}
+                  onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                  minLength="8"
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Street</label>
+                <input
+                  placeholder="Street"
+                  value={editForm.address?.street || ''}
+                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, street: e.target.value } })}
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>City</label>
+                <input
+                  placeholder="City"
+                  value={editForm.address?.city || ''}
+                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, city: e.target.value } })}
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>State</label>
+                <input
+                  placeholder="State"
+                  value={editForm.address?.state || ''}
+                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, state: e.target.value } })}
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Zip Code</label>
                 <input
                   placeholder="Zip Code"
                   value={editForm.address?.zipCode || ''}
                   onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, zipCode: e.target.value } })}
                 />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Country</label>
+                <input
+                  placeholder="Country"
+                  value={editForm.address?.country || ''}
+                  onChange={(e) => setEditForm({ ...editForm, address: { ...editForm.address, country: e.target.value } })}
+                />
                 <div className="actions">
-                  <button className="btn sm" onClick={() => handleUpdate(acc.id)}>Save</button>
+                  <button className="btn sm" onClick={() => handleUpdate(acc)}>Save</button>
                   <button className="btn sm" onClick={() => setEditingId(null)}>Cancel</button>
                 </div>
               </div>

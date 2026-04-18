@@ -14,5 +14,7 @@ public interface LineService {
 
 	LineDTO update(Integer id, LineDTO lineDTO);
 
+	LineDTO partialUpdate(Integer id, LineDTO lineDTO);
+
 	String delete(Integer id);
 }

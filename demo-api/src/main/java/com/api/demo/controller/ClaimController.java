@@ -65,6 +65,14 @@ public class ClaimController {
 		return new ResponseEntity<>(toDTO(updated), HttpStatus.OK);
 	}
 
+	@PostMapping("/update/{id}")
+	public ResponseEntity<ClaimDTO> partialUpdateClaim(@RequestBody ClaimDTO claimDTO, @PathVariable("id") Integer id) {
+		// Admins can update any claim
+		// Regular users can only update their own claims (validation in service layer)
+		Claim updated = claimService.partialUpdateClaim(claimDTO, id);
+		return new ResponseEntity<>(toDTO(updated), HttpStatus.OK);
+	}
+
 	@GetMapping("/{id}")
 	public ResponseEntity<ClaimDTO> getClaimById(@PathVariable("id") Integer id) {
 		// Admins can view any claim

@@ -1,6 +1,6 @@
-# Insurance Management System
+# Demo Insurance App System
 
-A modern, full-stack insurance management application demonstrating enterprise-grade architecture, security best practices, and cutting-edge technologies. Built with Spring Boot 4, React 18, and MySQL 8, featuring JWT authentication, role-based access control, and hot module replacement for optimal developer experience.
+A modern, full-stack Demo Insurance App application demonstrating enterprise-grade architecture, security best practices, and cutting-edge technologies. Built with Spring Boot 4, React 18, and MySQL 8, featuring JWT authentication, role-based access control, and hot module replacement for optimal developer experience.
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen.svg)](https://spring.io/projects/spring-boot)

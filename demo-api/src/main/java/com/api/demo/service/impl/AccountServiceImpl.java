@@ -14,6 +14,7 @@ import com.api.demo.exception.ResourceNotFoundException;
 import com.api.demo.entity.Account;
 import com.api.demo.repository.AccountRepository;
 import com.api.demo.service.AccountService;
+import com.api.demo.utils.PasswordValidator;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -31,6 +32,10 @@ public class AccountServiceImpl implements AccountService {
 	public AccountDTO addAccount(AccountDTO account) {
 		if (LocalDate.now().isBefore(account.getDateOfBirth()))
 			throw new ResourceNotFoundException("Date is not valid plese provide past date...");
+		
+		// Validate password
+		PasswordValidator.validatePassword(account.getPassword());
+		
 		Account customerData = modelMapper.map(account, Account.class);
 		customerData.setPassword(passwordEncoder.encode(customerData.getPassword()));
 		Account savedAccount = clientRepository.save(customerData);
@@ -61,17 +66,59 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public AccountDTO updateAccountInfo(AccountDTO account, Integer accountId) {
-		if (account.getEmail() != null)
-			throw new ResourceNotFoundException("email not changeble plese remove email in json data...");
-
 		Account prevAccount = clientRepository.findById(accountId)
 				.orElseThrow(() -> new ResourceNotFoundException("Account ", "accountId", "" + accountId));
+		
+		// Validate password
+		PasswordValidator.validatePassword(account.getPassword());
+		
 		Account updatedAccount = modelMapper.map(account, Account.class);
 		updatedAccount.setId(accountId);
 		updatedAccount.setEmail(prevAccount.getEmail());
 		updatedAccount.setPassword(passwordEncoder.encode(updatedAccount.getPassword()));
 		Account updatedAccountdata = clientRepository.save(updatedAccount);
 		return modelMapper.map(updatedAccountdata, AccountDTO.class);
+	}
+
+	@Override
+	public AccountDTO partialUpdateAccountInfo(AccountDTO account, Integer accountId) {
+		Account existingAccount = clientRepository.findById(accountId)
+				.orElseThrow(() -> new ResourceNotFoundException("Account ", "accountId", "" + accountId));
+		
+		// Only update fields that are provided (non-null)
+		if (account.getFirstName() != null) {
+			existingAccount.setFirstName(account.getFirstName());
+		}
+		if (account.getMiddleName() != null) {
+			existingAccount.setMiddleName(account.getMiddleName());
+		}
+		if (account.getLastName() != null) {
+			existingAccount.setLastName(account.getLastName());
+		}
+		if (account.getPhoneNumber() != null) {
+			existingAccount.setPhoneNumber(account.getPhoneNumber());
+		}
+		if (account.getDateOfBirth() != null) {
+			if (LocalDate.now().isBefore(account.getDateOfBirth())) {
+				throw new ResourceNotFoundException("Date is not valid please provide past date...");
+			}
+			existingAccount.setDateOfBirth(account.getDateOfBirth());
+		}
+		if (account.getPassword() != null && !account.getPassword().isEmpty()) {
+			// Validate password before updating
+			PasswordValidator.validatePassword(account.getPassword());
+			existingAccount.setPassword(passwordEncoder.encode(account.getPassword()));
+		}
+		if (account.getAddress() != null) {
+			existingAccount.setAddress(account.getAddress());
+		}
+		if (account.getAdmin() != null) {
+			existingAccount.setAdmin(account.getAdmin());
+		}
+		
+		// Email cannot be changed (unique identifier)
+		Account updatedAccount = clientRepository.save(existingAccount);
+		return modelMapper.map(updatedAccount, AccountDTO.class);
 	}
 
 	@Override

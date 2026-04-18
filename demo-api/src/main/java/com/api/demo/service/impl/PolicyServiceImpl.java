@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.api.demo.dto.PolicyDTO;
 import com.api.demo.exception.ResourceNotFoundException;
 import com.api.demo.entity.Account;
-import com.api.demo.entity.Line;
 import com.api.demo.entity.Policy;
 import com.api.demo.repository.LineRepository;
 import com.api.demo.repository.PolicyRepository;
@@ -43,12 +42,12 @@ public class PolicyServiceImpl implements PolicyService {
 		// Verify account exists
 		accountService.findById(clientId);
 		
-		// Get the Line entity from lineId
-		Line line = lineRepository.findById(policyDTO.getLineId())
+		// Verify line exists
+		lineRepository.findById(policyDTO.getLineId())
 				.orElseThrow(() -> new ResourceNotFoundException("Line", "id", String.valueOf(policyDTO.getLineId())));
 		
 		Policy policy = Policy.builder()
-				.line(line)
+				.lineId(policyDTO.getLineId())
 				.accountId(clientId)
 				.premium(policyDTO.getPremium())
 				.startDate(policyDTO.getStartDate())
@@ -102,11 +101,11 @@ public class PolicyServiceImpl implements PolicyService {
 			}
 		}
 		
-		// Get the Line entity if lineId is provided
+		// Update lineId if provided
 		if (policyDTO.getLineId() != null) {
-			Line line = lineRepository.findById(policyDTO.getLineId())
+			lineRepository.findById(policyDTO.getLineId())
 					.orElseThrow(() -> new ResourceNotFoundException("Line", "id", String.valueOf(policyDTO.getLineId())));
-			existingPolicy.setLine(line);
+			existingPolicy.setLineId(policyDTO.getLineId());
 		}
 		
 		// Update accountId if provided (admin only)

@@ -65,7 +65,11 @@ public class AppConfig {
 
 	@Bean
 	public ModelMapper mapper() {
-		return new ModelMapper();
+		ModelMapper mapper = new ModelMapper();
+		// Map Policy.expiryDate to PolicyDTO.endDate
+		mapper.typeMap(com.api.demo.entity.Policy.class, com.api.demo.dto.PolicyDTO.class)
+			.addMapping(com.api.demo.entity.Policy::getExpiryDate, com.api.demo.dto.PolicyDTO::setEndDate);
+		return mapper;
 	}
 
 }

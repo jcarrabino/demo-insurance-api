@@ -28,7 +28,7 @@ function Nav() {
 
   return (
     <nav>
-      <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Insurance Management</h1>
+      <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Demo Insurance App</h1>
       <div className="nav-links">
         {isLoggedIn ? (
           <>

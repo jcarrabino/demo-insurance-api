@@ -79,7 +79,14 @@ export default function Lines() {
     e.preventDefault(); setError(''); setSuccess('')
     try {
       const { id, ...updateData } = editForm
-      await updateLine(id, updateData)
+      // Only send fields that are provided
+      const partialData = {}
+      if (updateData.name) partialData.name = updateData.name
+      if (updateData.description !== undefined) partialData.description = updateData.description
+      if (updateData.maxCoverage) partialData.maxCoverage = updateData.maxCoverage
+      if (updateData.minCoverage) partialData.minCoverage = updateData.minCoverage
+      
+      await updateLine(id, partialData)
       setSuccess('Line updated')
       setEditingLine(null)
       setEditForm(emptyEdit)

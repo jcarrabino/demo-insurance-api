@@ -2,10 +2,10 @@
 # Start production environment
 
 echo "Stopping any running containers..."
-docker-compose down
+docker-compose down --volumes --remove-orphans
 
 echo "Starting services in production mode..."
-docker-compose --profile prod up --build -d
+docker-compose --profile prod up --build -d --force-recreate
 
 echo "Waiting for services to be ready..."
 sleep 5

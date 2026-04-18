@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import Spinner from '../components/Spinner'
 
 const STATUSES = ['SUBMITTED', 'IN_PROGRESS', 'APPROVED', 'DENIED']
-const empty = { claimNumber: '', description: '', claimDate: '', claimStatus: 'SUBMITTED', policyId: '' }
-const emptyEdit = { id: null, claimNumber: '', description: '', claimDate: '', claimStatus: 'SUBMITTED' }
+const empty = { description: '', claimDate: '', claimStatus: 'SUBMITTED', policyId: '' }
+const emptyEdit = { id: null, policyId: null, description: '', claimDate: '', claimStatus: 'SUBMITTED' }
 
 export default function Claims() {
   const { user } = useAuth()
@@ -58,7 +58,9 @@ export default function Claims() {
     e.preventDefault(); setError(''); setSuccess('')
     const { policyId, ...claimData } = form
     try {
-      await createClaim(policyId, claimData)
+      // Include policyId in the claim data for validation
+      const formData = { ...claimData, policyId: parseInt(policyId) }
+      await createClaim(policyId, formData)
       setSuccess('Claim submitted'); setForm(empty); setSelectedAccountId(''); setShowForm(false); load()
     } catch (err) {
       const data = err.response?.data
@@ -82,9 +84,9 @@ export default function Claims() {
     setEditingClaim(claim.id)
     setEditForm({
       id: claim.id,
-      claimNumber: claim.claimNumber || '',
+      policyId: claim.policyId, // Include policyId for PUT request
       description: claim.description || '',
-      claimDate: claim.claimDate || '',
+      claimDate: claim.claimDate || '', // Include for PUT but make non-editable
       claimStatus: claim.claimStatus || 'SUBMITTED'
     })
     setError('')
@@ -102,7 +104,12 @@ export default function Claims() {
     e.preventDefault(); setError(''); setSuccess('')
     try {
       const { id, ...updateData } = editForm
-      await updateClaim(id, updateData)
+      // Only send fields that are provided (editable fields)
+      const partialData = {}
+      if (updateData.description) partialData.description = updateData.description
+      if (updateData.claimStatus) partialData.claimStatus = updateData.claimStatus
+      
+      await updateClaim(id, partialData)
       setSuccess('Claim updated')
       setEditingClaim(null)
       setEditForm(emptyEdit)
@@ -154,13 +161,11 @@ export default function Claims() {
               <option value="">Select Policy</option>
               {filteredPolicies.map(p => (
                 <option key={p.id} value={p.id}>
-                  {p.line?.name || 'Policy'} - ${p.premium}
+                  POL-{String(p.id).padStart(5, '0')} - Line {p.lineId} - ${p.premium}
                   {user?.admin && p.account && ` (${p.account.firstName} ${p.account.lastName})`}
                 </option>
               ))}
             </select>
-            <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Claim Number</label>
-            <input placeholder="Claim Number" value={form.claimNumber} onChange={set('claimNumber')} required />
             <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Description</label>
             <textarea 
               placeholder="Describe the claim" 
@@ -194,8 +199,25 @@ export default function Claims() {
             {editingClaim === c.id ? (
               <form onSubmit={handleUpdate}>
                 <h3>Edit Claim</h3>
-                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Claim Number</label>
-                <input value={editForm.claimNumber} onChange={setEdit('claimNumber')} required />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Claim Number (Read-only)</label>
+                <input 
+                  value={`CLM-${String(c.id).padStart(5, '0')}`}
+                  disabled
+                  style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Policy (Read-only)</label>
+                <input 
+                  value={`POL-${String(c.policy?.id).padStart(5, '0')} - Line ${c.policy?.lineId || 'N/A'} - ${c.policy?.premium || 0}`}
+                  disabled
+                  style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Claim Date (Read-only)</label>
+                <input 
+                  type="date" 
+                  value={c.claimDate} 
+                  disabled
+                  style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+                />
                 <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Description</label>
                 <textarea 
                   value={editForm.description} 
@@ -203,8 +225,6 @@ export default function Claims() {
                   rows="3"
                   required 
                 />
-                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Claim Date</label>
-                <input type="date" value={editForm.claimDate} onChange={setEdit('claimDate')} required />
                 <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Status</label>
                 <select value={editForm.claimStatus} onChange={setEdit('claimStatus')}>
                   {STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
@@ -217,7 +237,7 @@ export default function Claims() {
             ) : (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <h3>{c.claimNumber}</h3>
+                  <h3>CLM-{String(c.id).padStart(5, '0')}</h3>
                   <span className={`badge ${c.claimStatus}`}>{c.claimStatus?.replace('_', ' ')}</span>
                 </div>
                 {user?.admin && c.policy?.account && (
@@ -227,7 +247,7 @@ export default function Claims() {
                 )}
                 {c.policy && (
                   <p style={{ fontSize: '0.85rem', color: '#666' }}>
-                    <strong>Policy:</strong> {c.policy.line?.name || 'Policy'}
+                    <strong>Policy:</strong> Line {c.policy.lineId}
                   </p>
                 )}
                 <p>{c.description}</p>

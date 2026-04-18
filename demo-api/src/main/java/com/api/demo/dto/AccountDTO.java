@@ -1,6 +1,7 @@
 package com.api.demo.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -56,4 +57,7 @@ public class AccountDTO {
 	private Address address;
 
 	private Boolean admin;
+
+	@JsonProperty(access = Access.READ_ONLY)
+	private List<Integer> policies;
 }

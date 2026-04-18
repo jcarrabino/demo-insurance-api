@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,17 @@ public class AccountController {
 			throw new SecurityException("Only admins can create admin users");
 		}
 		return new ResponseEntity<AccountDTO>(accountService.updateAccountInfo(account, id), HttpStatus.OK);
+	}
+
+	@PostMapping("/update/{id}")
+	public ResponseEntity<AccountDTO> partialUpdateAccount(@RequestBody AccountDTO account,
+			@PathVariable("id") Integer id) {
+		authService.requireAdminOrOwner(id);
+		// Prevent non-admins from setting admin flag
+		if (account.getAdmin() != null && account.getAdmin() && !authService.isAdmin()) {
+			throw new SecurityException("Only admins can create admin users");
+		}
+		return new ResponseEntity<AccountDTO>(accountService.partialUpdateAccountInfo(account, id), HttpStatus.OK);
 	}
 
 	@DeleteMapping("/{id}")

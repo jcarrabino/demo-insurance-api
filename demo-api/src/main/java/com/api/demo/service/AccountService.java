@@ -61,6 +61,14 @@ public interface AccountService {
 	AccountDTO updateAccountInfo(AccountDTO account, Integer accountId);
 
 	/**
+	 * Partial update - only updates fields that are provided (non-null)
+	 * @param account: DTO with fields to update
+	 * @param accountId: account ID to update
+	 * @return: updated account data
+	 */
+	AccountDTO partialUpdateAccountInfo(AccountDTO account, Integer accountId);
+
+	/**
 	 *
 	 * @param idthis
 	 *            para is account id in account we are first check this account id

@@ -52,7 +52,6 @@ public class ClaimServiceImpl implements ClaimService {
 		
 		// Create claim with policyId
 		Claim claim = Claim.builder()
-				.claimNumber(claimDTO.getClaimNumber())
 				.description(claimDTO.getDescription())
 				.claimDate(claimDTO.getClaimDate())
 				.claimStatus(claimDTO.getClaimStatus())
@@ -96,10 +95,36 @@ public class ClaimServiceImpl implements ClaimService {
 		}
 		
 		// Update fields
-		existingClaim.setClaimNumber(claim.getClaimNumber());
 		existingClaim.setDescription(claim.getDescription());
 		existingClaim.setClaimStatus(claim.getClaimStatus());
 		// Keep original claim date
+		
+		return claimRepository.save(existingClaim);
+	}
+
+	@Override
+	public Claim partialUpdateClaim(ClaimDTO claimDTO, Integer claimId) {
+		Claim existingClaim = claimRepository.findById(claimId)
+				.orElseThrow(() -> new ResourceNotFoundException("Claim ", "Claim id", "" + claimId));
+		
+		// If not admin, verify the claim belongs to the current user
+		if (!authService.isAdmin()) {
+			Account currentAccount = authService.getCurrentAccount();
+			// Get policy to check ownership
+			PolicyDTO policy = PolicyService.getById(existingClaim.getPolicyId());
+			if (policy.getAccountId() == null || !policy.getAccountId().equals(currentAccount.getId())) {
+				throw new SecurityException("Cannot update another user's claim");
+			}
+		}
+		
+		// Only update fields that are provided (non-null)
+		if (claimDTO.getDescription() != null) {
+			existingClaim.setDescription(claimDTO.getDescription());
+		}
+		if (claimDTO.getClaimStatus() != null) {
+			existingClaim.setClaimStatus(claimDTO.getClaimStatus());
+		}
+		// claimDate and policyId cannot be changed
 		
 		return claimRepository.save(existingClaim);
 	}

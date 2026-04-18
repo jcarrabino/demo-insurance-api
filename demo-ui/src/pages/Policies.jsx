@@ -8,7 +8,7 @@ const empty = {
 }
 
 const emptyEdit = {
-  id: null, lineId: '', premium: '', startDate: '', endDate: ''
+  id: null, accountId: null, lineId: '', premium: '', startDate: '', endDate: ''
 }
 
 export default function Policies() {
@@ -68,7 +68,9 @@ export default function Policies() {
     }
     
     try {
-      await createPolicy(accountId, form)
+      // Include accountId in the form data for validation
+      const formData = { ...form, accountId: parseInt(accountId) }
+      await createPolicy(accountId, formData)
       setSuccess('Policy created'); setForm(empty); setSelectedAccountId(''); setShowForm(false); load()
     } catch (err) {
       const data = err.response?.data
@@ -92,7 +94,8 @@ export default function Policies() {
     setEditingPolicy(policy.id)
     setEditForm({
       id: policy.id,
-      lineId: policy.line?.id || '',
+      accountId: policy.accountId, // Include accountId for PUT request
+      lineId: policy.lineId || '',
       premium: policy.premium || '',
       startDate: policy.startDate || '',
       endDate: policy.endDate || ''
@@ -112,7 +115,14 @@ export default function Policies() {
     e.preventDefault(); setError(''); setSuccess('')
     try {
       const { id, ...updateData } = editForm
-      await updatePolicy(id, updateData)
+      // Only send fields that are provided
+      const partialData = {}
+      if (updateData.lineId) partialData.lineId = updateData.lineId
+      if (updateData.premium) partialData.premium = updateData.premium
+      if (updateData.startDate) partialData.startDate = updateData.startDate
+      if (updateData.endDate) partialData.endDate = updateData.endDate
+      
+      await updatePolicy(id, partialData)
       setSuccess('Policy updated')
       setEditingPolicy(null)
       setEditForm(emptyEdit)
@@ -193,7 +203,19 @@ export default function Policies() {
             {editingPolicy === p.id ? (
               <form onSubmit={handleUpdate}>
                 <h3>Edit Policy</h3>
-                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Insurance Line</label>
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Policy Number (Read-only)</label>
+                <input 
+                  value={`POL-${String(p.id).padStart(5, '0')}`}
+                  disabled
+                  style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Account (Read-only)</label>
+                <input 
+                  value={p.account ? `${p.account.firstName} ${p.account.lastName} (${p.account.email})` : `Account ID: ${p.accountId}`}
+                  disabled
+                  style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Insurance Line *</label>
                 <select value={editForm.lineId} onChange={setEdit('lineId')} required>
                   <option value="">Select Line</option>
                   {lines.map(l => (
@@ -202,11 +224,11 @@ export default function Policies() {
                     </option>
                   ))}
                 </select>
-                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Premium</label>
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Premium *</label>
                 <input type="number" step="0.01" value={editForm.premium} onChange={setEdit('premium')} required />
-                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Start Date</label>
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Start Date *</label>
                 <input type="date" value={editForm.startDate} onChange={setEdit('startDate')} required />
-                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>End Date</label>
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>End Date *</label>
                 <input type="date" value={editForm.endDate} onChange={setEdit('endDate')} required />
                 <div className="actions">
                   <button className="btn sm" type="submit">Save</button>
@@ -215,7 +237,8 @@ export default function Policies() {
               </form>
             ) : (
               <>
-                <h3>{p.line?.name || 'Policy'}</h3>
+                <h3>POL-{String(p.id).padStart(5, '0')}</h3>
+                <p><strong>Line ID:</strong> {p.lineId || 'N/A'}</p>
                 {user?.admin && p.account && (
                   <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
                     <strong>Account:</strong> {p.account.firstName} {p.account.lastName}

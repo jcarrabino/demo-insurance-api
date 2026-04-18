@@ -1,6 +1,7 @@
 package com.api.demo.controller;
 
 import com.api.demo.dto.ClaimDTO;
+import com.api.demo.dto.PolicyDTO;
 import com.api.demo.entity.Claim;
 import com.api.demo.exception.ResourceNotFoundException;
 import com.api.demo.model.ClaimStatus;
@@ -44,13 +45,12 @@ class ClaimControllerTest {
 	void setUp() {
 		claim = new Claim();
 		claim.setId(1);
-		claim.setClaimNumber("CLM-001");
 		claim.setDescription("Accident claim");
 		claim.setClaimDate(LocalDate.now());
 		claim.setClaimStatus(ClaimStatus.SUBMITTED);
+		claim.setPolicyId(1);
 
 		claimDTO = new ClaimDTO();
-		claimDTO.setClaimNumber("CLM-001");
 		claimDTO.setDescription("Accident claim");
 		claimDTO.setClaimDate(LocalDate.now());
 		claimDTO.setClaimStatus(ClaimStatus.SUBMITTED);
@@ -62,11 +62,24 @@ class ClaimControllerTest {
 	@Test
     void createClaim_returns201() {
         when(claimService.createNewClaim(1, claimDTO)).thenReturn(claim);
+        
+        ClaimDTO responseDTO = new ClaimDTO();
+        responseDTO.setId(1);
+        responseDTO.setDescription("Accident claim");
+        responseDTO.setClaimDate(LocalDate.now());
+        responseDTO.setClaimStatus(ClaimStatus.SUBMITTED);
+        
+        when(modelMapper.map(claim, ClaimDTO.class)).thenReturn(responseDTO);
+        
+        PolicyDTO policyDTO = new PolicyDTO();
+        policyDTO.setId(1);
+        when(policyService.getById(claim.getPolicyId())).thenReturn(policyDTO);
 
         ResponseEntity<ClaimDTO> response = claimController.createClaim(1, claimDTO);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody().getClaimNumber()).isEqualTo("CLM-001");
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getId()).isEqualTo(1);
     }
 
 	@Test

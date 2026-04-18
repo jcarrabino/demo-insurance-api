@@ -63,7 +63,7 @@ class PolicyServiceImplTest {
 
 		policy = new Policy();
 		policy.setId(1);
-		policy.setLine(line);
+		policy.setLineId(1);
 		policy.setAccountId(1);
 		policy.setPremium(BigDecimal.valueOf(500));
 		policy.setStartDate(LocalDate.now());

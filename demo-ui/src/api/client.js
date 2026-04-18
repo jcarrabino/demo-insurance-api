@@ -53,28 +53,28 @@ export const login = (email, password) =>
 // Accounts
 export const getAccounts = () => api.get('/api/accounts/')
 export const getAccount = (id) => api.get(`/api/accounts/${id}`)
-export const updateAccount = (id, data) => api.put(`/api/accounts/${id}`, data)
+export const updateAccount = (id, data) => api.post(`/api/accounts/update/${id}`, data)
 export const deleteAccount = (id) => api.delete(`/api/accounts/${id}`)
 
 // Policies
 export const getPolicies = () => api.get('/api/policies/')
 export const getPolicy = (id) => api.get(`/api/policies/${id}`)
 export const createPolicy = (accountId, data) => api.post(`/api/policies/${accountId}`, data)
-export const updatePolicy = (id, data) => api.put(`/api/policies/${id}`, data)
+export const updatePolicy = (id, data) => api.post(`/api/policies/update/${id}`, data)
 export const deletePolicy = (id) => api.delete(`/api/policies/${id}`)
 
 // Claims
 export const getClaims = () => api.get('/api/claims/')
 export const getClaim = (id) => api.get(`/api/claims/${id}`)
 export const createClaim = (policyId, data) => api.post(`/api/claims/${policyId}`, data)
-export const updateClaim = (id, data) => api.put(`/api/claims/${id}`, data)
+export const updateClaim = (id, data) => api.post(`/api/claims/update/${id}`, data)
 export const deleteClaim = (id) => api.delete(`/api/claims/${id}`)
 
 // Lines
 export const getLines = () => api.get('/api/lines/')
 export const getLine = (id) => api.get(`/api/lines/${id}`)
 export const createLine = (data) => api.post('/api/lines/', data)
-export const updateLine = (id, data) => api.put(`/api/lines/${id}`, data)
+export const updateLine = (id, data) => api.post(`/api/lines/update/${id}`, data)
 export const deleteLine = (id) => api.delete(`/api/lines/${id}`)
 
 // Coverage

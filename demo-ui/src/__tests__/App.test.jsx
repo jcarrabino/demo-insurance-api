@@ -25,7 +25,7 @@ describe('App', () => {
   it('should render app with navigation', () => {
     renderApp()
 
-    expect(screen.getByText('Insurance Management')).toBeInTheDocument()
+    expect(screen.getByText('Demo Insurance App')).toBeInTheDocument()
   })
 
   it('should show login/register links when not logged in', () => {

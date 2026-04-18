@@ -49,6 +49,14 @@ public class PolicyController {
 		return new ResponseEntity<PolicyDTO>(policyService.updatePolicy(policy, id), HttpStatus.OK);
 	}
 
+	@PostMapping("/update/{id}")
+	public ResponseEntity<PolicyDTO> partialUpdatePolicy(@RequestBody PolicyDTO policy,
+			@PathVariable("id") Integer id) {
+		// Admins can update any policy
+		// Regular users can only update their own policies (validation in service layer)
+		return new ResponseEntity<PolicyDTO>(policyService.updatePolicy(policy, id), HttpStatus.OK);
+	}
+
 	@DeleteMapping("/{id}")
 	public ResponseEntity<String> deletePolicy(@PathVariable("id") Integer id) {
 		// Admins can delete any policy
