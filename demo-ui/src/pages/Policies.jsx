@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
-import { getPolicies, createPolicy, deletePolicy, getAccounts, getLines } from '../api/client'
+import { getPolicies, createPolicy, updatePolicy, deletePolicy, getAccounts, getLines } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import Spinner from '../components/Spinner'
 
 const empty = {
   lineId: '', premium: '', startDate: '', endDate: ''
+}
+
+const emptyEdit = {
+  id: null, lineId: '', premium: '', startDate: '', endDate: ''
 }
 
 export default function Policies() {
@@ -16,23 +21,34 @@ export default function Policies() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editingPolicy, setEditingPolicy] = useState(null)
+  const [editForm, setEditForm] = useState(emptyEdit)
+  const [isLoading, setIsLoading] = useState(true)
 
   const load = async () => {
+    setIsLoading(true)
     try {
       const policiesData = await getPolicies()
-      setPolicies(policiesData.data)
+      setPolicies(Array.isArray(policiesData.data) ? policiesData.data : [])
       
       // Load lines for policy creation
       const linesData = await getLines()
-      setLines(linesData.data)
+      setLines(Array.isArray(linesData.data) ? linesData.data : [])
       
       // If admin, load all accounts for selection
       if (user?.admin) {
         const accountsData = await getAccounts()
-        setAccounts(accountsData.data)
+        setAccounts(Array.isArray(accountsData.data) ? accountsData.data : [])
       }
-    } catch { 
-      setError('Failed to load data') 
+    } catch (err) { 
+      console.error('Failed to load data:', err)
+      setError('Failed to load data')
+      // Ensure arrays are initialized even on error
+      setPolicies([])
+      setLines([])
+      setAccounts([])
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -70,6 +86,53 @@ export default function Policies() {
     } catch { 
       setError('Failed to delete') 
     }
+  }
+
+  const startEdit = (policy) => {
+    setEditingPolicy(policy.id)
+    setEditForm({
+      id: policy.id,
+      lineId: policy.line?.id || '',
+      premium: policy.premium || '',
+      startDate: policy.startDate || '',
+      endDate: policy.endDate || ''
+    })
+    setError('')
+    setSuccess('')
+  }
+
+  const cancelEdit = () => {
+    setEditingPolicy(null)
+    setEditForm(emptyEdit)
+  }
+
+  const setEdit = (f) => (e) => setEditForm(p => ({ ...p, [f]: e.target.value }))
+
+  const handleUpdate = async (e) => {
+    e.preventDefault(); setError(''); setSuccess('')
+    try {
+      const { id, ...updateData } = editForm
+      await updatePolicy(id, updateData)
+      setSuccess('Policy updated')
+      setEditingPolicy(null)
+      setEditForm(emptyEdit)
+      load()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      const data = err.response?.data
+      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.message || data?.Massege || 'Failed to update')
+    }
+  }
+
+  // Check if user can edit a policy
+  const canEdit = (policy) => {
+    if (user?.admin) return true
+    return policy.accountId === user?.id
+  }
+
+  // Check if user can delete a policy (admin only)
+  const canDelete = () => {
+    return user?.admin
   }
 
   return (
@@ -121,24 +184,60 @@ export default function Policies() {
       {error && !showForm && <p className="error">{error}</p>}
       {success && !showForm && <p className="success">{success}</p>}
       
-      <div className="grid">
-        {policies.map(p => (
+      {isLoading ? (
+        <Spinner message="Loading policies..." />
+      ) : (
+        <div className="grid">
+          {policies.map(p => (
           <div className="card" key={p.id}>
-            <h3>{p.line?.name || 'Policy'}</h3>
-            {user?.admin && p.account && (
-              <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
-                <strong>Account:</strong> {p.account.firstName} {p.account.lastName}
-              </p>
+            {editingPolicy === p.id ? (
+              <form onSubmit={handleUpdate}>
+                <h3>Edit Policy</h3>
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Insurance Line</label>
+                <select value={editForm.lineId} onChange={setEdit('lineId')} required>
+                  <option value="">Select Line</option>
+                  {lines.map(l => (
+                    <option key={l.id} value={l.id}>
+                      {l.name} (${l.minCoverage.toLocaleString()} - ${l.maxCoverage.toLocaleString()})
+                    </option>
+                  ))}
+                </select>
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Premium</label>
+                <input type="number" step="0.01" value={editForm.premium} onChange={setEdit('premium')} required />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Start Date</label>
+                <input type="date" value={editForm.startDate} onChange={setEdit('startDate')} required />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>End Date</label>
+                <input type="date" value={editForm.endDate} onChange={setEdit('endDate')} required />
+                <div className="actions">
+                  <button className="btn sm" type="submit">Save</button>
+                  <button className="btn sm" type="button" onClick={cancelEdit}>Cancel</button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <h3>{p.line?.name || 'Policy'}</h3>
+                {user?.admin && p.account && (
+                  <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
+                    <strong>Account:</strong> {p.account.firstName} {p.account.lastName}
+                  </p>
+                )}
+                <p><strong>Premium:</strong> ${p.premium?.toLocaleString()}</p>
+                <p><strong>Period:</strong> {p.startDate} → {p.endDate}</p>
+                <div className="actions">
+                  {canEdit(p) && (
+                    <button className="btn sm" onClick={() => startEdit(p)}>Edit</button>
+                  )}
+                  {canDelete() && (
+                    <button className="btn danger sm" onClick={() => handleDelete(p.id)}>Delete</button>
+                  )}
+                </div>
+              </>
             )}
-            <p><strong>Premium:</strong> ${p.premium?.toLocaleString()}</p>
-            <p><strong>Period:</strong> {p.startDate} → {p.endDate}</p>
-            <div className="actions">
-              <button className="btn danger sm" onClick={() => handleDelete(p.id)}>Delete</button>
-            </div>
           </div>
         ))}
         {policies.length === 0 && <p style={{ color: '#888' }}>No policies found.</p>}
       </div>
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAccounts, updateAccount, deleteAccount } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import Spinner from '../components/Spinner'
 
 export default function Accounts() {
   const { user } = useAuth()
@@ -79,7 +80,12 @@ export default function Accounts() {
     deleteMutation.mutate(id)
   }
 
-  if (isLoading) return <div className="page">Loading...</div>
+  if (isLoading) return (
+    <div className="page">
+      <h2>Accounts Management</h2>
+      <Spinner message="Loading accounts..." />
+    </div>
+  )
 
   return (
     <div className="page">

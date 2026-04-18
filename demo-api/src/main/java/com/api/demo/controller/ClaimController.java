@@ -1,7 +1,9 @@
 package com.api.demo.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import com.api.demo.dto.ClaimDTO;
 import com.api.demo.entity.Claim;
 import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.ClaimService;
+import com.api.demo.service.PolicyService;
 
 import jakarta.validation.Valid;
 
@@ -29,27 +32,45 @@ public class ClaimController {
 	private ClaimService claimService;
 
 	@Autowired
+	private PolicyService policyService;
+
+	@Autowired
 	private AuthorizationService authService;
 
+	@Autowired
+	private ModelMapper modelMapper;
+
+	private ClaimDTO toDTO(Claim claim) {
+		ClaimDTO dto = modelMapper.map(claim, ClaimDTO.class);
+		// Populate policy details (without circular reference)
+		if (claim.getPolicyId() != null) {
+			dto.setPolicy(policyService.getById(claim.getPolicyId()));
+		}
+		return dto;
+	}
+
 	@PostMapping("/{id}")
-	public ResponseEntity<Claim> createClaim(@PathVariable("id") Integer id, @Valid @RequestBody ClaimDTO claim) {
+	public ResponseEntity<ClaimDTO> createClaim(@PathVariable("id") Integer id, @Valid @RequestBody ClaimDTO claim) {
 		// Admins can create claims for any policy
 		// Regular users can only create claims for their own policies (validation in service layer)
-		return new ResponseEntity<Claim>(claimService.createNewClaim(id, claim), HttpStatus.CREATED);
+		Claim created = claimService.createNewClaim(id, claim);
+		return new ResponseEntity<>(toDTO(created), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<Claim> updateClaim(@Valid @RequestBody Claim claim, @PathVariable("id") Integer id) {
+	public ResponseEntity<ClaimDTO> updateClaim(@Valid @RequestBody Claim claim, @PathVariable("id") Integer id) {
 		// Admins can update any claim
 		// Regular users can only update their own claims (validation in service layer)
-		return new ResponseEntity<Claim>(claimService.updateClaim(claim, id), HttpStatus.OK);
+		Claim updated = claimService.updateClaim(claim, id);
+		return new ResponseEntity<>(toDTO(updated), HttpStatus.OK);
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<Claim> getClaimById(@PathVariable("id") Integer id) {
+	public ResponseEntity<ClaimDTO> getClaimById(@PathVariable("id") Integer id) {
 		// Admins can view any claim
 		// Regular users can only view their own claims (validation in service layer)
-		return new ResponseEntity<Claim>(claimService.getClaimById(id), HttpStatus.OK);
+		Claim claim = claimService.getClaimById(id);
+		return new ResponseEntity<>(toDTO(claim), HttpStatus.OK);
 	}
 
 	@DeleteMapping("/{id}")
@@ -60,8 +81,12 @@ public class ClaimController {
 	}
 
 	@GetMapping("/")
-	public ResponseEntity<List<Claim>> getAllClaims() {
-		return new ResponseEntity<List<Claim>>(claimService.getAllClaim(), HttpStatus.OK);
+	public ResponseEntity<List<ClaimDTO>> getAllClaims() {
+		List<Claim> claims = claimService.getAllClaim();
+		List<ClaimDTO> dtos = claims.stream()
+				.map(this::toDTO)
+				.collect(Collectors.toList());
+		return new ResponseEntity<>(dtos, HttpStatus.OK);
 	}
 
 }

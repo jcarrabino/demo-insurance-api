@@ -21,17 +21,21 @@ api.interceptors.request.use(
   }
 )
 
-// Optional: Add response interceptor to handle 401 errors
+// Response interceptor to handle 401 errors (expired/invalid token)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token might be expired or invalid
-      console.warn('Unauthorized request - token may be invalid or expired')
-      // Optionally clear token and redirect to login
-      // localStorage.removeItem('token')
-      // localStorage.removeItem('user')
-      // window.location.href = '/login'
+      // Token is expired or invalid - clear auth data and redirect to home
+      console.warn('Unauthorized request - token expired or invalid, redirecting to home')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      
+      // Dispatch custom event for AuthContext to handle
+      window.dispatchEvent(new Event('auth:logout'))
+      
+      // Redirect to home page
+      window.location.href = '/'
     }
     return Promise.reject(error)
   }

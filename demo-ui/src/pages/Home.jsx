@@ -6,6 +6,7 @@ export default function Home() {
 
   return (
     <div className="home-page">
+      {/* 🔥 HMR Test: Change the hero title below and watch it update instantly! */}
       <section className="hero">
         <div className="hero-content">
           <h1>Protect What Matters Most</h1>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
 /* eslint-disable react-refresh/only-export-components */
 
@@ -24,6 +24,17 @@ export function AuthProvider({ children }) {
     setToken(null)
     setUser(null)
   }
+
+  // Listen for auth:logout events from axios interceptor
+  useEffect(() => {
+    const handleLogout = () => {
+      setToken(null)
+      setUser(null)
+    }
+    
+    window.addEventListener('auth:logout', handleLogout)
+    return () => window.removeEventListener('auth:logout', handleLogout)
+  }, [])
 
   return (
     <AuthContext.Provider value={{ token, user, saveAuth, logout, isLoggedIn: !!token }}>

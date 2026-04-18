@@ -1,4 +1,5 @@
 services:
+  # MySQL Database - Always runs
   mysql:
     image: mysql:8.0
     container_name: insurance-db
@@ -16,6 +17,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # Spring Boot API - Always runs
   app:
     build:
       context: .
@@ -33,6 +35,8 @@ services:
       mysql:
         condition: service_healthy
 
+  # Production UI - nginx serving built React app
+  # Only runs with: docker-compose --profile prod up
   ui:
     build:
       context: ./demo-ui
@@ -42,19 +46,23 @@ services:
       - "3000:80"
     depends_on:
       - app
+    profiles:
+      - prod
 
+  # Development UI - Vite dev server with HMR
+  # Only runs with: docker-compose --profile dev up
   ui-dev:
     image: node:20-alpine
     container_name: insurance-ui-dev
     working_dir: /app
-    command: sh -c "npm install && npm run dev -- --host"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "5173:5173"
     volumes:
       - ./demo-ui:/app
-      - /app/node_modules
+      - ui_dev_node_modules:/app/node_modules
     environment:
-      - VITE_API_URL=http://app:8080
+      - VITE_API_URL=http://localhost:8080
     depends_on:
       - app
     profiles:
@@ -62,3 +70,4 @@ services:
 
 volumes:
   mysql_data:
+  ui_dev_node_modules:

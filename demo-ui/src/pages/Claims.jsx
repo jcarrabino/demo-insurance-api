@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { getClaims, createClaim, deleteClaim, getPolicies, getAccounts } from '../api/client'
+import { getClaims, createClaim, updateClaim, deleteClaim, getPolicies, getAccounts } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import Spinner from '../components/Spinner'
 
 const STATUSES = ['SUBMITTED', 'IN_PROGRESS', 'APPROVED', 'DENIED']
 const empty = { claimNumber: '', description: '', claimDate: '', claimStatus: 'SUBMITTED', policyId: '' }
+const emptyEdit = { id: null, claimNumber: '', description: '', claimDate: '', claimStatus: 'SUBMITTED' }
 
 export default function Claims() {
   const { user } = useAuth()
@@ -15,20 +17,31 @@ export default function Claims() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editingClaim, setEditingClaim] = useState(null)
+  const [editForm, setEditForm] = useState(emptyEdit)
+  const [isLoading, setIsLoading] = useState(true)
 
   const load = async () => {
+    setIsLoading(true)
     try {
       const [c, p] = await Promise.all([getClaims(), getPolicies()])
-      setClaims(c.data)
-      setPolicies(p.data)
+      setClaims(Array.isArray(c.data) ? c.data : [])
+      setPolicies(Array.isArray(p.data) ? p.data : [])
       
       // If admin, load all accounts for filtering
       if (user?.admin) {
         const accountsData = await getAccounts()
-        setAccounts(accountsData.data)
+        setAccounts(Array.isArray(accountsData.data) ? accountsData.data : [])
       }
-    } catch { 
-      setError('Failed to load data') 
+    } catch (err) { 
+      console.error('Failed to load data:', err)
+      setError('Failed to load data')
+      // Ensure arrays are initialized even on error
+      setClaims([])
+      setPolicies([])
+      setAccounts([])
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -38,7 +51,7 @@ export default function Claims() {
 
   // Filter policies based on selected account (for admins)
   const filteredPolicies = user?.admin && selectedAccountId
-    ? policies.filter(p => p.account?.id === parseInt(selectedAccountId))
+    ? policies.filter(p => p.accountId === parseInt(selectedAccountId))
     : policies
 
   const handleCreate = async (e) => {
@@ -63,6 +76,53 @@ export default function Claims() {
     } catch { 
       setError('Failed to delete') 
     }
+  }
+
+  const startEdit = (claim) => {
+    setEditingClaim(claim.id)
+    setEditForm({
+      id: claim.id,
+      claimNumber: claim.claimNumber || '',
+      description: claim.description || '',
+      claimDate: claim.claimDate || '',
+      claimStatus: claim.claimStatus || 'SUBMITTED'
+    })
+    setError('')
+    setSuccess('')
+  }
+
+  const cancelEdit = () => {
+    setEditingClaim(null)
+    setEditForm(emptyEdit)
+  }
+
+  const setEdit = (f) => (e) => setEditForm(p => ({ ...p, [f]: e.target.value }))
+
+  const handleUpdate = async (e) => {
+    e.preventDefault(); setError(''); setSuccess('')
+    try {
+      const { id, ...updateData } = editForm
+      await updateClaim(id, updateData)
+      setSuccess('Claim updated')
+      setEditingClaim(null)
+      setEditForm(emptyEdit)
+      load()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      const data = err.response?.data
+      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.message || data?.Massege || 'Failed to update')
+    }
+  }
+
+  // Check if user can edit a claim
+  const canEdit = (claim) => {
+    if (user?.admin) return true
+    return claim.policy?.accountId === user?.id
+  }
+
+  // Check if user can delete a claim (admin only)
+  const canDelete = () => {
+    return user?.admin
   }
 
   return (
@@ -125,32 +185,68 @@ export default function Claims() {
       {error && !showForm && <p className="error">{error}</p>}
       {success && !showForm && <p className="success">{success}</p>}
       
-      <div className="grid">
-        {claims.map(c => (
+      {isLoading ? (
+        <Spinner message="Loading claims..." />
+      ) : (
+        <div className="grid">
+          {claims.map(c => (
           <div className="card" key={c.id}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <h3>{c.claimNumber}</h3>
-              <span className={`badge ${c.claimStatus}`}>{c.claimStatus?.replace('_', ' ')}</span>
-            </div>
-            {user?.admin && c.policy?.account && (
-              <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
-                <strong>Account:</strong> {c.policy.account.firstName} {c.policy.account.lastName}
-              </p>
+            {editingClaim === c.id ? (
+              <form onSubmit={handleUpdate}>
+                <h3>Edit Claim</h3>
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Claim Number</label>
+                <input value={editForm.claimNumber} onChange={setEdit('claimNumber')} required />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Description</label>
+                <textarea 
+                  value={editForm.description} 
+                  onChange={setEdit('description')} 
+                  rows="3"
+                  required 
+                />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Claim Date</label>
+                <input type="date" value={editForm.claimDate} onChange={setEdit('claimDate')} required />
+                <label style={{ fontSize: '0.85rem', color: '#555', fontWeight: 'bold' }}>Status</label>
+                <select value={editForm.claimStatus} onChange={setEdit('claimStatus')}>
+                  {STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
+                </select>
+                <div className="actions">
+                  <button className="btn sm" type="submit">Save</button>
+                  <button className="btn sm" type="button" onClick={cancelEdit}>Cancel</button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h3>{c.claimNumber}</h3>
+                  <span className={`badge ${c.claimStatus}`}>{c.claimStatus?.replace('_', ' ')}</span>
+                </div>
+                {user?.admin && c.policy?.account && (
+                  <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
+                    <strong>Account:</strong> {c.policy.account.firstName} {c.policy.account.lastName}
+                  </p>
+                )}
+                {c.policy && (
+                  <p style={{ fontSize: '0.85rem', color: '#666' }}>
+                    <strong>Policy:</strong> {c.policy.line?.name || 'Policy'}
+                  </p>
+                )}
+                <p>{c.description}</p>
+                <p style={{ fontSize: '0.8rem', color: '#888' }}>{c.claimDate}</p>
+                <div className="actions">
+                  {canEdit(c) && (
+                    <button className="btn sm" onClick={() => startEdit(c)}>Edit</button>
+                  )}
+                  {canDelete() && (
+                    <button className="btn danger sm" onClick={() => handleDelete(c.id)}>Delete</button>
+                  )}
+                </div>
+              </>
             )}
-            {c.policy && (
-              <p style={{ fontSize: '0.85rem', color: '#666' }}>
-                <strong>Policy:</strong> {c.policy.line?.name || 'Policy'}
-              </p>
-            )}
-            <p>{c.description}</p>
-            <p style={{ fontSize: '0.8rem', color: '#888' }}>{c.claimDate}</p>
-            <div className="actions">
-              <button className="btn danger sm" onClick={() => handleDelete(c.id)}>Delete</button>
-            </div>
           </div>
         ))}
         {claims.length === 0 && <p style={{ color: '#888' }}>No claims found.</p>}
       </div>
+      )}
     </div>
   )
 }

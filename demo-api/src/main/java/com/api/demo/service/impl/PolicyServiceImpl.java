@@ -40,7 +40,8 @@ public class PolicyServiceImpl implements PolicyService {
 
 	@Override
 	public PolicyDTO createNewPolicy(Integer clientId, PolicyDTO policyDTO) {
-		Account client = modelMapper.map(accountService.findById(clientId), Account.class);
+		// Verify account exists
+		accountService.findById(clientId);
 		
 		// Get the Line entity from lineId
 		Line line = lineRepository.findById(policyDTO.getLineId())
@@ -48,14 +49,19 @@ public class PolicyServiceImpl implements PolicyService {
 		
 		Policy policy = Policy.builder()
 				.line(line)
-				.account(client)
+				.accountId(clientId)
 				.premium(policyDTO.getPremium())
 				.startDate(policyDTO.getStartDate())
 				.expiryDate(policyDTO.getEndDate())
 				.build();
 		
 		Policy savedPolicy = policyRepository.save(policy);
-		return modelMapper.map(savedPolicy, PolicyDTO.class);
+		PolicyDTO result = modelMapper.map(savedPolicy, PolicyDTO.class);
+		
+		// Populate account details
+		result.setAccount(accountService.findById(clientId));
+		
+		return result;
 	}
 
 	@Transactional
@@ -67,12 +73,19 @@ public class PolicyServiceImpl implements PolicyService {
 		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (policy.getAccount() == null || !policy.getAccount().getId().equals(currentAccount.getId())) {
+			if (policy.getAccountId() == null || !policy.getAccountId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot access another user's policy");
 			}
 		}
 		
-		return modelMapper.map(policy, PolicyDTO.class);
+		PolicyDTO result = modelMapper.map(policy, PolicyDTO.class);
+		
+		// Populate account details
+		if (policy.getAccountId() != null) {
+			result.setAccount(accountService.findById(policy.getAccountId()));
+		}
+		
+		return result;
 	}
 
 	@Override
@@ -83,8 +96,8 @@ public class PolicyServiceImpl implements PolicyService {
 		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (existingPolicy.getAccount() == null 
-					|| !existingPolicy.getAccount().getId().equals(currentAccount.getId())) {
+			if (existingPolicy.getAccountId() == null 
+					|| !existingPolicy.getAccountId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot update another user's policy");
 			}
 		}
@@ -94,6 +107,13 @@ public class PolicyServiceImpl implements PolicyService {
 			Line line = lineRepository.findById(policyDTO.getLineId())
 					.orElseThrow(() -> new ResourceNotFoundException("Line", "id", String.valueOf(policyDTO.getLineId())));
 			existingPolicy.setLine(line);
+		}
+		
+		// Update accountId if provided (admin only)
+		if (policyDTO.getAccountId() != null && authService.isAdmin()) {
+			// Verify account exists
+			accountService.findById(policyDTO.getAccountId());
+			existingPolicy.setAccountId(policyDTO.getAccountId());
 		}
 		
 		// Update other fields
@@ -108,7 +128,14 @@ public class PolicyServiceImpl implements PolicyService {
 		}
 		
 		Policy updatedPolicy = policyRepository.save(existingPolicy);
-		return modelMapper.map(updatedPolicy, PolicyDTO.class);
+		PolicyDTO result = modelMapper.map(updatedPolicy, PolicyDTO.class);
+		
+		// Populate account details
+		if (updatedPolicy.getAccountId() != null) {
+			result.setAccount(accountService.findById(updatedPolicy.getAccountId()));
+		}
+		
+		return result;
 	}
 
 	@Override
@@ -119,7 +146,7 @@ public class PolicyServiceImpl implements PolicyService {
 		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (policy.getAccount() == null || !policy.getAccount().getId().equals(currentAccount.getId())) {
+			if (policy.getAccountId() == null || !policy.getAccountId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot delete another user's policy");
 			}
 		}
@@ -130,30 +157,39 @@ public class PolicyServiceImpl implements PolicyService {
 
 	@Override
 	public List<PolicyDTO> getAllPolicy() {
+		List<Policy> policies;
+		
 		// If admin, return all policies
 		// If regular user, return only their policies
 		if (authService.isAdmin()) {
-			List<Policy> policies = policyRepository.findAll();
-			return policies.stream().map(policy -> modelMapper.map(policy, PolicyDTO.class))
-					.collect(Collectors.toList());
+			policies = policyRepository.findAll();
 		} else {
 			// Get current user's account
 			Account currentAccount = authService.getCurrentAccount();
-			List<Policy> policies = policyRepository.findAll().stream()
-					.filter(policy -> policy.getAccount().getId().equals(currentAccount.getId()))
-					.collect(Collectors.toList());
-			return policies.stream().map(policy -> modelMapper.map(policy, PolicyDTO.class))
+			policies = policyRepository.findAll().stream()
+					.filter(policy -> policy.getAccountId() != null && policy.getAccountId().equals(currentAccount.getId()))
 					.collect(Collectors.toList());
 		}
+		
+		// Map to DTOs and populate account details
+		return policies.stream().map(policy -> {
+			PolicyDTO dto = modelMapper.map(policy, PolicyDTO.class);
+			if (policy.getAccountId() != null) {
+				dto.setAccount(accountService.findById(policy.getAccountId()));
+			}
+			return dto;
+		}).collect(Collectors.toList());
 	}
 
 	@Override
 	public PolicyDTO assignPolicyWithAccount(Integer accountId, Integer policyId) {
-		Account client = modelMapper.map(accountService.findById(accountId), Account.class);
-		PolicyDTO policy = modelMapper.map(getById(policyId), PolicyDTO.class);
-		// policy.setAccount(client);
-		PolicyDTO updateInsurancePolcy = updatePolicy(policy, policyId);
-		return modelMapper.map(updateInsurancePolcy, PolicyDTO.class);
+		// Verify account exists
+		accountService.findById(accountId);
+		
+		PolicyDTO policy = getById(policyId);
+		policy.setAccountId(accountId);
+		
+		return updatePolicy(policy, policyId);
 	}
 
 	@Override

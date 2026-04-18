@@ -34,6 +34,7 @@ export default [
         btoa: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
+        Event: 'readonly',
       }
     },
     settings: {

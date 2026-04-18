@@ -68,14 +68,13 @@ class ClaimServiceImplTest {
     void createNewClaim_savesAndReturnsClaim() {
         when(policyService.getById(1)).thenReturn(policyDTO);
         when(authService.isAdmin()).thenReturn(true);
-        when(modelMapper.map(claimDTO, Claim.class)).thenReturn(claim);
-        when(claimRepository.save(claim)).thenReturn(claim);
+        when(claimRepository.save(any(Claim.class))).thenReturn(claim);
 
         Claim result = claimService.createNewClaim(1, claimDTO);
 
         assertThat(result).isNotNull();
         assertThat(result.getClaimNumber()).isEqualTo("CLM-001");
-        verify(claimRepository).save(claim);
+        verify(claimRepository).save(any(Claim.class));
     }
 
 	@Test
@@ -100,13 +99,12 @@ class ClaimServiceImplTest {
     void updateClaim_updatesAndReturnsClaim() {
         when(claimRepository.findById(1)).thenReturn(Optional.of(claim));
         when(authService.isAdmin()).thenReturn(true);
-        when(modelMapper.map(claim, Claim.class)).thenReturn(claim);
-        when(claimRepository.save(claim)).thenReturn(claim);
+        when(claimRepository.save(any(Claim.class))).thenReturn(claim);
 
         Claim result = claimService.updateClaim(claim, 1);
 
         assertThat(result).isNotNull();
-        verify(claimRepository).save(claim);
+        verify(claimRepository).save(any(Claim.class));
     }
 
 	@Test

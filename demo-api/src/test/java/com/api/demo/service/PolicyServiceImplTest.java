@@ -64,6 +64,7 @@ class PolicyServiceImplTest {
 		policy = new Policy();
 		policy.setId(1);
 		policy.setLine(line);
+		policy.setAccountId(1);
 		policy.setPremium(BigDecimal.valueOf(500));
 		policy.setStartDate(LocalDate.now());
 		policy.setExpiryDate(LocalDate.now().plusYears(1));
@@ -71,6 +72,7 @@ class PolicyServiceImplTest {
 		policyDTO = new PolicyDTO();
 		policyDTO.setId(1);
 		policyDTO.setLineId(1);
+		policyDTO.setAccountId(1);
 		policyDTO.setPremium(BigDecimal.valueOf(500));
 		policyDTO.setStartDate(LocalDate.now());
 		policyDTO.setEndDate(LocalDate.now().plusYears(1));
@@ -79,7 +81,6 @@ class PolicyServiceImplTest {
 	@Test
     void createNewPolicy_savesAndReturnsDTO() {
         when(accountService.findById(1)).thenReturn(accountDTO);
-        when(modelMapper.map(accountDTO, Account.class)).thenReturn(account);
         when(lineRepository.findById(1)).thenReturn(Optional.of(line));
         when(policyRepository.save(any(Policy.class))).thenReturn(policy);
         when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
@@ -88,6 +89,7 @@ class PolicyServiceImplTest {
 
         assertThat(result).isNotNull();
         verify(policyRepository).save(any(Policy.class));
+        verify(accountService, times(2)).findById(1); // Once for validation, once for populating DTO
     }
 
 	@Test
@@ -95,6 +97,7 @@ class PolicyServiceImplTest {
         when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
         when(authService.isAdmin()).thenReturn(true);
         when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
+        when(accountService.findById(1)).thenReturn(accountDTO);
 
         PolicyDTO result = policyService.getById(1);
 
@@ -116,6 +119,7 @@ class PolicyServiceImplTest {
         when(lineRepository.findById(1)).thenReturn(Optional.of(line));
         when(policyRepository.save(policy)).thenReturn(policy);
         when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
+        when(accountService.findById(1)).thenReturn(accountDTO);
 
         PolicyDTO result = policyService.updatePolicy(policyDTO, 1);
 
@@ -155,6 +159,7 @@ class PolicyServiceImplTest {
         when(authService.isAdmin()).thenReturn(true);
         when(policyRepository.findAll()).thenReturn(List.of(policy));
         when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
+        when(accountService.findById(1)).thenReturn(accountDTO);
 
         List<PolicyDTO> result = policyService.getAllPolicy();
 

@@ -6,12 +6,14 @@ import com.api.demo.exception.ResourceNotFoundException;
 import com.api.demo.model.ClaimStatus;
 import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.ClaimService;
+import com.api.demo.service.PolicyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -28,6 +30,10 @@ class ClaimControllerTest {
 	ClaimService claimService;
 	@Mock
 	AuthorizationService authService;
+	@Mock
+	private ModelMapper modelMapper;
+	@Mock
+	private PolicyService policyService;
 	@InjectMocks
 	ClaimController claimController;
 
@@ -48,13 +54,16 @@ class ClaimControllerTest {
 		claimDTO.setDescription("Accident claim");
 		claimDTO.setClaimDate(LocalDate.now());
 		claimDTO.setClaimStatus(ClaimStatus.SUBMITTED);
+
+		// Mock ModelMapper to convert Claim to ClaimDTO
+		when(modelMapper.map(any(Claim.class), eq(ClaimDTO.class))).thenReturn(claimDTO);
 	}
 
 	@Test
     void createClaim_returns201() {
         when(claimService.createNewClaim(1, claimDTO)).thenReturn(claim);
 
-        ResponseEntity<Claim> response = claimController.createClaim(1, claimDTO);
+        ResponseEntity<ClaimDTO> response = claimController.createClaim(1, claimDTO);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody().getClaimNumber()).isEqualTo("CLM-001");
@@ -64,7 +73,7 @@ class ClaimControllerTest {
     void getClaimById_returns200() {
         when(claimService.getClaimById(1)).thenReturn(claim);
 
-        ResponseEntity<Claim> response = claimController.getClaimById(1);
+        ResponseEntity<ClaimDTO> response = claimController.getClaimById(1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.SUBMITTED);
@@ -72,6 +81,8 @@ class ClaimControllerTest {
 
 	@Test
     void getClaimById_throws_whenNotFound() {
+        // Don't stub modelMapper for this test since it won't be called
+        reset(modelMapper);
         when(claimService.getClaimById(99)).thenThrow(new ResourceNotFoundException("Claim", "Claim id", "99"));
 
         assertThatThrownBy(() -> claimController.getClaimById(99))
@@ -82,7 +93,7 @@ class ClaimControllerTest {
     void getAllClaims_returns200() {
         when(claimService.getAllClaim()).thenReturn(List.of(claim));
 
-        ResponseEntity<List<Claim>> response = claimController.getAllClaims();
+        ResponseEntity<List<ClaimDTO>> response = claimController.getAllClaims();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
@@ -92,7 +103,7 @@ class ClaimControllerTest {
     void updateClaim_returns200() {
         when(claimService.updateClaim(claim, 1)).thenReturn(claim);
 
-        ResponseEntity<Claim> response = claimController.updateClaim(claim, 1);
+        ResponseEntity<ClaimDTO> response = claimController.updateClaim(claim, 1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getDescription()).isEqualTo("Accident claim");
@@ -100,6 +111,8 @@ class ClaimControllerTest {
 
 	@Test
     void deleteClaim_returns200() {
+        // Don't stub modelMapper for this test since it won't be called
+        reset(modelMapper);
         when(claimService.deleteClaim(1)).thenReturn("claim info delete successfully...");
 
         ResponseEntity<String> response = claimController.deleteClaimById(1);

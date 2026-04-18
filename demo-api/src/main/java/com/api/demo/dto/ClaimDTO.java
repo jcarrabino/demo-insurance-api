@@ -7,6 +7,7 @@ import com.api.demo.model.ClaimStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +32,10 @@ public class ClaimDTO {
 
 	@NotNull(message = "Claim Status is required")
 	private ClaimStatus claimStatus;
+
+	@NotNull(message = "Policy ID is required")
+	@Positive(message = "Policy ID must be a positive number")
+	private Integer policyId;
 
 	private PolicyDTO policy;
 }

@@ -38,20 +38,28 @@ public class ClaimServiceImpl implements ClaimService {
 	}
 
 	@Override
-	public Claim createNewClaim(Integer policyId, ClaimDTO claim) {
+	public Claim createNewClaim(Integer policyId, ClaimDTO claimDTO) {
+		// Verify policy exists and get policy details
 		PolicyDTO policy = PolicyService.getById(policyId);
 		
 		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (!policy.getAccount().getId().equals(currentAccount.getId())) {
+			if (policy.getAccountId() == null || !policy.getAccountId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot create claim for another user's policy");
 			}
 		}
 		
-		claim.setPolicy(policy);
-		Claim claimd = modelMapper.map(claim, Claim.class);
-		return claimRepository.save(claimd);
+		// Create claim with policyId
+		Claim claim = Claim.builder()
+				.claimNumber(claimDTO.getClaimNumber())
+				.description(claimDTO.getDescription())
+				.claimDate(claimDTO.getClaimDate())
+				.claimStatus(claimDTO.getClaimStatus())
+				.policyId(policyId)
+				.build();
+		
+		return claimRepository.save(claim);
 	}
 
 	@Override
@@ -62,8 +70,9 @@ public class ClaimServiceImpl implements ClaimService {
 		// If not admin, verify the claim belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (claim.getPolicy() == null || claim.getPolicy().getAccount() == null
-					|| !claim.getPolicy().getAccount().getId().equals(currentAccount.getId())) {
+			// Get policy to check ownership
+			PolicyDTO policy = PolicyService.getById(claim.getPolicyId());
+			if (policy.getAccountId() == null || !policy.getAccountId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot access another user's claim");
 			}
 		}
@@ -79,16 +88,20 @@ public class ClaimServiceImpl implements ClaimService {
 		// If not admin, verify the claim belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (existingClaim.getPolicy() == null || existingClaim.getPolicy().getAccount() == null
-					|| !existingClaim.getPolicy().getAccount().getId().equals(currentAccount.getId())) {
+			// Get policy to check ownership
+			PolicyDTO policy = PolicyService.getById(existingClaim.getPolicyId());
+			if (policy.getAccountId() == null || !policy.getAccountId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot update another user's claim");
 			}
 		}
 		
-		Claim newClaim = modelMapper.map(claim, Claim.class);
-		newClaim.setId(claimId);
-		newClaim.setClaimDate(existingClaim.getClaimDate());
-		return claimRepository.save(newClaim);
+		// Update fields
+		existingClaim.setClaimNumber(claim.getClaimNumber());
+		existingClaim.setDescription(claim.getDescription());
+		existingClaim.setClaimStatus(claim.getClaimStatus());
+		// Keep original claim date
+		
+		return claimRepository.save(existingClaim);
 	}
 
 	@Override
@@ -99,8 +112,9 @@ public class ClaimServiceImpl implements ClaimService {
 		// If not admin, verify the claim belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (claim.getPolicy() == null || claim.getPolicy().getAccount() == null
-					|| !claim.getPolicy().getAccount().getId().equals(currentAccount.getId())) {
+			// Get policy to check ownership
+			PolicyDTO policy = PolicyService.getById(claim.getPolicyId());
+			if (policy.getAccountId() == null || !policy.getAccountId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot delete another user's claim");
 			}
 		}
@@ -118,10 +132,16 @@ public class ClaimServiceImpl implements ClaimService {
 		} else {
 			// Get current user's account
 			Account currentAccount = authService.getCurrentAccount();
+			// Filter claims by checking each policy's ownership
 			return claimRepository.findAll().stream()
-					.filter(claim -> claim.getPolicy() != null 
-							&& claim.getPolicy().getAccount() != null
-							&& claim.getPolicy().getAccount().getId().equals(currentAccount.getId()))
+					.filter(claim -> {
+						try {
+							PolicyDTO policy = PolicyService.getById(claim.getPolicyId());
+							return policy.getAccountId() != null && policy.getAccountId().equals(currentAccount.getId());
+						} catch (Exception e) {
+							return false;
+						}
+					})
 					.collect(Collectors.toList());
 		}
 	}

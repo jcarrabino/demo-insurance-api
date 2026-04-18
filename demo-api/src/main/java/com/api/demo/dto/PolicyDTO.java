@@ -2,10 +2,6 @@ package com.api.demo.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
-
-import com.api.demo.entity.Account;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Future;
@@ -27,6 +23,12 @@ public class PolicyDTO {
 
 	private LineDTO line;
 
+	@NotNull(message = "Account ID is required")
+	@Positive(message = "Account ID must be a positive number")
+	private Integer accountId;
+
+	private AccountDTO account;
+
 	@NotNull(message = "Premium is required")
 	@DecimalMin(value = "0.01", message = "Premium must be greater than 0")
 	private BigDecimal premium;
@@ -38,8 +40,4 @@ public class PolicyDTO {
 	@NotNull(message = "End Date is required")
 	@Future(message = "End Date must be in the future")
 	private LocalDate endDate;
-
-	private Account account;
-
-	private Set<ClaimDTO> claims = new HashSet<>();
 }
