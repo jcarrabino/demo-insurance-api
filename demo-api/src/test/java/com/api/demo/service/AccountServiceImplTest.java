@@ -146,7 +146,7 @@ class AccountServiceImplTest {
 		// Email updates are now allowed in partial updates
 		accountDTO.setEmail("newemail@example.com");
 		accountDTO.setFirstName("UpdatedName");
-		
+
 		Account updatedAccount = new Account();
 		updatedAccount.setId(1);
 		updatedAccount.setFirstName("UpdatedName");
@@ -155,7 +155,7 @@ class AccountServiceImplTest {
 		updatedAccount.setPassword("encoded");
 		updatedAccount.setDateOfBirth(LocalDate.of(1990, 1, 1));
 		updatedAccount.setPhoneNumber("1234567890");
-		
+
 		AccountDTO updatedDTO = new AccountDTO();
 		updatedDTO.setFirstName("UpdatedName");
 		updatedDTO.setLastName("Doe");
@@ -163,13 +163,13 @@ class AccountServiceImplTest {
 		updatedDTO.setPassword("Password1@");
 		updatedDTO.setDateOfBirth(LocalDate.of(1990, 1, 1));
 		updatedDTO.setPhoneNumber("1234567890");
-		
+
 		when(accountRepository.findById(1)).thenReturn(Optional.of(account));
 		when(accountRepository.save(any(Account.class))).thenReturn(updatedAccount);
 		when(modelMapper.map(updatedAccount, AccountDTO.class)).thenReturn(updatedDTO);
-		
+
 		AccountDTO result = accountService.partialUpdateAccountInfo(accountDTO, 1);
-		
+
 		assertThat(result).isNotNull();
 		assertThat(result.getFirstName()).isEqualTo("UpdatedName");
 		verify(accountRepository).save(any(Account.class));

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getClaims, createClaim, updateClaim, deleteClaim, getPolicies, getAccounts } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useEditedFields } from '../hooks/useEditedFields'
+import { getErrorMessage } from '../utils/errorHandler'
 import Spinner from '../components/Spinner'
 
 const STATUSES = ['SUBMITTED', 'IN_PROGRESS', 'APPROVED', 'DENIED']
@@ -27,13 +28,20 @@ export default function Claims() {
     setIsLoading(true)
     try {
       const [c, p] = await Promise.all([getClaims(), getPolicies()])
-      setClaims(Array.isArray(c.data) ? c.data : [])
-      setPolicies(Array.isArray(p.data) ? p.data : [])
+      // getClaims returns PagedResponse<T>, extract content
+      const claimsData = c.data?.content || c.data || []
+      // getPolicies returns List<T> directly (unwrapped by interceptor)
+      const policiesData = Array.isArray(p.data) ? p.data : []
+      
+      setClaims(Array.isArray(claimsData) ? claimsData : [])
+      setPolicies(Array.isArray(policiesData) ? policiesData : [])
       
       // If admin, load all accounts for filtering
       if (user?.admin) {
         const accountsData = await getAccounts()
-        setAccounts(Array.isArray(accountsData.data) ? accountsData.data : [])
+        // getAccounts returns PagedResponse<T>, extract content
+        const accounts = accountsData.data?.content || accountsData.data || []
+        setAccounts(Array.isArray(accounts) ? accounts : [])
       }
     } catch (err) { 
       console.error('Failed to load data:', err)
@@ -65,8 +73,7 @@ export default function Claims() {
       await createClaim(policyId, formData)
       setSuccess('Claim submitted'); setForm(empty); setSelectedAccountId(''); setShowForm(false); load()
     } catch (err) {
-      const data = err.response?.data
-      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.message || data?.Massege || 'Failed')
+      setError(getErrorMessage(err))
     }
   }
 
@@ -112,6 +119,7 @@ export default function Claims() {
       const { id, ...updateData } = editForm
       const partialData = getEditedData(updateData)
       
+      // Use PATCH for partial updates (only edited fields)
       await updateClaim(id, partialData)
       setSuccess('Claim updated')
       setEditingClaim(null)
@@ -119,8 +127,7 @@ export default function Claims() {
       load()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      const data = err.response?.data
-      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.message || data?.Massege || 'Failed to update')
+      setError(getErrorMessage(err))
     }
   }
 

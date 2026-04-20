@@ -42,8 +42,11 @@ public interface ClaimService {
 
 	/**
 	 * Partial update - only updates fields that are provided (non-null)
-	 * @param claimDTO: DTO with fields to update
-	 * @param claimId: claim ID to update
+	 *
+	 * @param claimDTO:
+	 *            DTO with fields to update
+	 * @param claimId:
+	 *            claim ID to update
 	 * @return: updated claim data
 	 */
 	Claim partialUpdateClaim(ClaimDTO claimDTO, Integer claimId);

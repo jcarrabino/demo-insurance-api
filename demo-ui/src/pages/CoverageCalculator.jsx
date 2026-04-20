@@ -14,7 +14,9 @@ export default function CoverageCalculator() {
     queryKey: ['accounts'],
     queryFn: async () => {
       if (user?.admin) {
-        return (await getAccounts()).data
+        const res = await getAccounts()
+        // Extract content from PagedResponse<T>
+        return res.data?.content || res.data || []
       }
       return []
     },
@@ -23,7 +25,11 @@ export default function CoverageCalculator() {
 
   const { data: lines } = useQuery({
     queryKey: ['lines'],
-    queryFn: async () => (await getLines()).data,
+    queryFn: async () => {
+      const res = await getLines()
+      // getLines returns List<T> directly (unwrapped by interceptor)
+      return Array.isArray(res.data) ? res.data : []
+    },
   })
 
   const handleCalculate = async () => {

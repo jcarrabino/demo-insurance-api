@@ -2,6 +2,8 @@ package com.api.demo.controller;
 
 import com.api.demo.dto.AccountDTO;
 import com.api.demo.exception.ResourceNotFoundException;
+import com.api.demo.model.ApiResponse;
+import com.api.demo.model.PagedResponse;
 import com.api.demo.service.AccountService;
 import com.api.demo.service.AuthorizationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -46,10 +52,10 @@ class AccountControllerTest {
     void getAccountById_returns200() {
         when(accountService.findById(1)).thenReturn(accountDTO);
 
-        ResponseEntity<AccountDTO> response = accountController.getAccountById(1);
+        ResponseEntity<ApiResponse<AccountDTO>> response = accountController.getAccountById(1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getEmail()).isEqualTo("john@example.com");
+        assertThat(response.getBody().getData().getEmail()).isEqualTo("john@example.com");
     }
 
 	@Test
@@ -64,40 +70,41 @@ class AccountControllerTest {
     void getAccountByEmail_returns200() {
         when(accountService.findByEmail("john@example.com")).thenReturn(accountDTO);
 
-        ResponseEntity<AccountDTO> response = accountController.getAccountByEmail("john@example.com");
+        ResponseEntity<ApiResponse<AccountDTO>> response = accountController.getAccountByEmail("john@example.com");
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getFirstName()).isEqualTo("John");
+        assertThat(response.getBody().getData().getFirstName()).isEqualTo("John");
     }
 
 	@Test
-    void getAllAccounts_returns200() {
-        when(accountService.findAllAccount()).thenReturn(List.of(accountDTO));
+	void getAllAccounts_returns200() {
+		Page<AccountDTO> page = new PageImpl<>(List.of(accountDTO), PageRequest.of(0, 20), 1);
+		when(accountService.findAllAccounts(any(Pageable.class))).thenReturn(page);
 
-        ResponseEntity<List<AccountDTO>> response = accountController.getAllAccount();
+		ResponseEntity<ApiResponse<PagedResponse<AccountDTO>>> response = accountController.getAllAccounts(0, 20);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody().get(0).getEmail()).isEqualTo("john@example.com");
-    }
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody().getData().getContent()).hasSize(1);
+		assertThat(response.getBody().getData().getContent().get(0).getEmail()).isEqualTo("john@example.com");
+	}
 
 	@Test
     void deleteAccount_returns200() {
         when(accountService.deleteAccount(1)).thenReturn("Account Data deleted successfully...");
 
-        ResponseEntity<String> response = accountController.deleteAccount(1);
+        ResponseEntity<ApiResponse<String>> response = accountController.deleteAccount(1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("deleted");
+        assertThat(response.getBody().getData()).contains("deleted");
     }
 
 	@Test
     void updateAccount_returns200() {
-        when(accountService.updateAccountInfo(accountDTO, 1)).thenReturn(accountDTO);
+        when(accountService.partialUpdateAccountInfo(accountDTO, 1)).thenReturn(accountDTO);
 
-        ResponseEntity<AccountDTO> response = accountController.updateAccount(accountDTO, 1);
+        ResponseEntity<ApiResponse<AccountDTO>> response = accountController.updateAccount(accountDTO, 1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getEmail()).isEqualTo("john@example.com");
+        assertThat(response.getBody().getData().getEmail()).isEqualTo("john@example.com");
     }
 }

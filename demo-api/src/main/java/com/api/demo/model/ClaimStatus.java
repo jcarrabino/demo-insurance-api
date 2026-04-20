@@ -8,6 +8,5 @@ import lombok.Getter;
 public enum ClaimStatus {
 	SUBMITTED("Submitted"), IN_PROGRESS("In Progress"), APPROVED("Approved"), DENIED("Denied");
 
-	private String displayName;
-
+	private final String displayName;
 }

@@ -21,15 +21,10 @@ public class JwtUtil {
 	public static String generateToken(Authentication authentication) {
 		SecretKey key = Keys.hmacShaKeyFor(JWT_KEY.getBytes());
 
-		String jwt = Jwts.builder()
-				.setIssuer("John")
-				.setSubject("JWT Token")
+		String jwt = Jwts.builder().setIssuer("John").setSubject("JWT Token")
 				.claim("username", authentication.getName())
-				.claim("authorities", convertAuthWithString(authentication.getAuthorities()))
-				.setIssuedAt(new Date())
-				.setExpiration(new Date(new Date().getTime() + EXPIRATION_TIME))
-				.signWith(key)
-				.compact();
+				.claim("authorities", convertAuthWithString(authentication.getAuthorities())).setIssuedAt(new Date())
+				.setExpiration(new Date(new Date().getTime() + EXPIRATION_TIME)).signWith(key).compact();
 
 		return jwt;
 	}

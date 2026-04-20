@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 
@@ -28,6 +30,9 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @Entity
+@Table(name = "claim", indexes = {@Index(name = "idx_policy_id", columnList = "policy_id"),
+		@Index(name = "idx_claim_status", columnList = "claim_status"),
+		@Index(name = "idx_claim_date", columnList = "claim_date")})
 public class Claim {
 
 	@Id

@@ -2,6 +2,7 @@ package com.api.demo.controller;
 
 import com.api.demo.dto.PolicyDTO;
 import com.api.demo.exception.ResourceNotFoundException;
+import com.api.demo.model.ApiResponse;
 import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.PolicyService;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,20 +47,20 @@ class PolicyControllerTest {
     void createPolicy_returns201() {
         when(policyService.createNewPolicy(1, policyDTO)).thenReturn(policyDTO);
 
-        ResponseEntity<PolicyDTO> response = policyController.createdPolicy(policyDTO, 1);
+        ResponseEntity<ApiResponse<PolicyDTO>> response = policyController.createdPolicy(policyDTO, 1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody().getId()).isEqualTo(1);
+        assertThat(response.getBody().getData().getId()).isEqualTo(1);
     }
 
 	@Test
     void getPolicy_returns200() {
         when(policyService.getById(1)).thenReturn(policyDTO);
 
-        ResponseEntity<PolicyDTO> response = policyController.getPolicy(1);
+        ResponseEntity<ApiResponse<PolicyDTO>> response = policyController.getPolicy(1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getLineId()).isEqualTo(1);
+        assertThat(response.getBody().getData().getLineId()).isEqualTo(1);
     }
 
 	@Test
@@ -74,29 +75,29 @@ class PolicyControllerTest {
     void getAllPolicies_returns200() {
         when(policyService.getAllPolicy()).thenReturn(List.of(policyDTO));
 
-        ResponseEntity<List<PolicyDTO>> response = policyController.getAllPolicy();
+        ResponseEntity<ApiResponse<List<PolicyDTO>>> response = policyController.getAllPolicy();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().getData()).hasSize(1);
     }
 
 	@Test
     void updatePolicy_returns200() {
         when(policyService.updatePolicy(policyDTO, 1)).thenReturn(policyDTO);
 
-        ResponseEntity<PolicyDTO> response = policyController.updatePolicy(policyDTO, 1);
+        ResponseEntity<ApiResponse<PolicyDTO>> response = policyController.updatePolicy(policyDTO, 1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getPremium()).isEqualByComparingTo(BigDecimal.valueOf(500));
+        assertThat(response.getBody().getData().getPremium()).isEqualByComparingTo(BigDecimal.valueOf(500));
     }
 
 	@Test
     void deletePolicy_returns200() {
         when(policyService.deletePolicy(1)).thenReturn("Insurance policy deleted successfully...");
 
-        ResponseEntity<String> response = policyController.deletePolicy(1);
+        ResponseEntity<ApiResponse<String>> response = policyController.deletePolicy(1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("deleted");
+        assertThat(response.getBody().getData()).contains("deleted");
     }
 }

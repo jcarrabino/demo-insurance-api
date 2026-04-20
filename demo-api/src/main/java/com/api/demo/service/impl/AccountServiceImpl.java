@@ -6,8 +6,11 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.api.demo.dto.AccountDTO;
 import com.api.demo.exception.ResourceNotFoundException;
@@ -17,6 +20,7 @@ import com.api.demo.service.AccountService;
 import com.api.demo.utils.PasswordValidator;
 
 @Service
+@Transactional
 public class AccountServiceImpl implements AccountService {
 
 	@Autowired
@@ -32,10 +36,10 @@ public class AccountServiceImpl implements AccountService {
 	public AccountDTO addAccount(AccountDTO account) {
 		if (LocalDate.now().isBefore(account.getDateOfBirth()))
 			throw new ResourceNotFoundException("Date is not valid plese provide past date...");
-		
+
 		// Validate password
 		PasswordValidator.validatePassword(account.getPassword());
-		
+
 		Account customerData = modelMapper.map(account, Account.class);
 		customerData.setPassword(passwordEncoder.encode(customerData.getPassword()));
 		Account savedAccount = clientRepository.save(customerData);
@@ -43,6 +47,7 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public AccountDTO findById(Integer id) {
 		Account account = clientRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Account ", "accountId", "" + id));
@@ -50,6 +55,7 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public AccountDTO findByEmail(String email) {
 		Account account = clientRepository.findByEmail(email)
 				.orElseThrow(() -> new ResourceNotFoundException("Account", "account email", email));
@@ -57,21 +63,27 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
+	@Deprecated(forRemoval = true)
 	public List<AccountDTO> findAllAccount() {
 		List<Account> clients = clientRepository.findAll();
-		List<AccountDTO> clientsDto = clients.stream().map(account -> modelMapper.map(account, AccountDTO.class))
-				.collect(Collectors.toList());
-		return clientsDto;
+		return clients.stream().map(account -> modelMapper.map(account, AccountDTO.class)).collect(Collectors.toList());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<AccountDTO> findAllAccounts(Pageable pageable) {
+		return clientRepository.findAll(pageable).map(account -> modelMapper.map(account, AccountDTO.class));
 	}
 
 	@Override
 	public AccountDTO updateAccountInfo(AccountDTO account, Integer accountId) {
 		Account prevAccount = clientRepository.findById(accountId)
 				.orElseThrow(() -> new ResourceNotFoundException("Account ", "accountId", "" + accountId));
-		
+
 		// Validate password
 		PasswordValidator.validatePassword(account.getPassword());
-		
+
 		Account updatedAccount = modelMapper.map(account, Account.class);
 		updatedAccount.setId(accountId);
 		updatedAccount.setEmail(prevAccount.getEmail());
@@ -84,7 +96,7 @@ public class AccountServiceImpl implements AccountService {
 	public AccountDTO partialUpdateAccountInfo(AccountDTO account, Integer accountId) {
 		Account existingAccount = clientRepository.findById(accountId)
 				.orElseThrow(() -> new ResourceNotFoundException("Account ", "accountId", "" + accountId));
-		
+
 		// Only update fields that are provided (non-null)
 		if (account.getFirstName() != null) {
 			existingAccount.setFirstName(account.getFirstName());
@@ -115,7 +127,7 @@ public class AccountServiceImpl implements AccountService {
 		if (account.getAdmin() != null) {
 			existingAccount.setAdmin(account.getAdmin());
 		}
-		
+
 		// Email cannot be changed (unique identifier)
 		Account updatedAccount = clientRepository.save(existingAccount);
 		return modelMapper.map(updatedAccount, AccountDTO.class);

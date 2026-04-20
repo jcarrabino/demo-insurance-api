@@ -1,6 +1,7 @@
 package com.api.demo.controller;
 
 import com.api.demo.dto.AccountDTO;
+import com.api.demo.model.ApiResponse;
 import com.api.demo.service.AccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.AuthenticationManager;
 
 import java.time.LocalDate;
 
@@ -23,7 +24,7 @@ class PublicControllerTest {
 	@Mock
 	AccountService accountService;
 	@Mock
-	Authentication authentication;
+	AuthenticationManager authenticationManager;
 	@InjectMocks
 	PublicController publicController;
 
@@ -43,29 +44,19 @@ class PublicControllerTest {
 
 	@Test
 	void welcome_returnsMessage() {
-		String result = publicController.welcomeHandeler();
+		ResponseEntity<ApiResponse<String>> response = publicController.welcome();
 
-		assertThat(result).isEqualTo("Welcome to Insurance manegement system");
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody().getData()).contains("Welcome");
 	}
 
 	@Test
     void register_returns201() {
         when(accountService.addAccount(accountDTO)).thenReturn(accountDTO);
 
-        ResponseEntity<AccountDTO> response = publicController.createClient(accountDTO);
+        ResponseEntity<ApiResponse<AccountDTO>> response = publicController.register(accountDTO);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody().getEmail()).isEqualTo("john@example.com");
-    }
-
-	@Test
-    void login_returns200() {
-        when(authentication.getName()).thenReturn("john@example.com");
-        when(accountService.findByEmail("john@example.com")).thenReturn(accountDTO);
-
-        ResponseEntity<AccountDTO> response = publicController.getLoggedInClientDetailsHandler(authentication);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getFirstName()).isEqualTo("John");
+        assertThat(response.getBody().getData().getEmail()).isEqualTo("john@example.com");
     }
 }

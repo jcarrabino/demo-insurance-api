@@ -29,12 +29,17 @@ export default function Login() {
         return
       }
       
-      // Account data is in the response body
-      saveAuth(jwt, res.data.account)
+      // Account data is in the response body (unwrapped by response interceptor)
+      // res.data now contains the LoginResponse object directly
+      const loginResponse = res.data
+      saveAuth(jwt, loginResponse.account || loginResponse)
       navigate('/policies')
     } catch (err) {
       console.error('Login error:', err)
-      setError(err.response?.data?.message || 'Invalid credentials')
+      const errorData = err.response?.data
+      // Handle both wrapped and unwrapped error responses
+      const errorMessage = errorData?.message || errorData?.data?.message || 'Invalid credentials'
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }

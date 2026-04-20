@@ -13,14 +13,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.demo.dto.AccountDTO;
+import com.api.demo.model.ApiResponse;
 import com.api.demo.model.LoginRequest;
 import com.api.demo.model.LoginResponse;
 import com.api.demo.service.AccountService;
 import com.api.demo.utils.JwtUtil;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
+@Tag(name = "Authentication", description = "Public authentication endpoints")
 public class PublicController {
 
 	@Autowired
@@ -30,41 +34,33 @@ public class PublicController {
 	private AuthenticationManager authenticationManager;
 
 	@PostMapping("/api/v1/auth/login")
+	@Operation(summary = "Login", description = "Authenticate user and receive JWT token")
 	public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
 		try {
 			Authentication authentication = authenticationManager.authenticate(
-					new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-			);
-			
+					new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+
 			AccountDTO account = accountService.findByEmail(authentication.getName());
 			String jwt = JwtUtil.generateToken(authentication);
-			
-			return ResponseEntity.ok()
-					.header("Authorization", jwt)
-					.body(new LoginResponse(account, "Login successful"));
+
+			return ResponseEntity.ok().header("Authorization", jwt)
+					.body(ApiResponse.success(new LoginResponse(account, "Login successful")));
 		} catch (AuthenticationException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new LoginResponse(null, "Invalid credentials"));
+					.body(ApiResponse.error("Invalid credentials", "INVALID_CREDENTIALS"));
 		}
-	}
-
-	@GetMapping("/login")
-	public ResponseEntity<AccountDTO> getLoggedInClientDetailsHandler(Authentication auth) {
-		if (auth == null) {
-			return ResponseEntity.status(HttpStatus.OK).build();
-		}
-		//AccountDTO account = accountService.findByEmail(auth.getName());
-		return new ResponseEntity<AccountDTO>(HttpStatus.OK);
 	}
 
 	@GetMapping("/welcome")
-	public String welcomeHandeler() {
-		return "Welcome to Insurance manegement system";
+	@Operation(summary = "Welcome", description = "Health check endpoint")
+	public ResponseEntity<ApiResponse<String>> welcome() {
+		return new ResponseEntity<>(ApiResponse.success("Welcome to Insurance Management System"), HttpStatus.OK);
 	}
 
-	@PostMapping("/register")
-	public ResponseEntity<AccountDTO> createClient(@Valid @RequestBody AccountDTO account) {
-		return new ResponseEntity<AccountDTO>(accountService.addAccount(account), HttpStatus.CREATED);
+	@PostMapping("/api/v1/auth/register")
+	@Operation(summary = "Register", description = "Create a new user account")
+	public ResponseEntity<ApiResponse<AccountDTO>> register(@Valid @RequestBody AccountDTO account) {
+		AccountDTO created = accountService.addAccount(account);
+		return new ResponseEntity<>(ApiResponse.success(created, "Account created successfully"), HttpStatus.CREATED);
 	}
-
 }

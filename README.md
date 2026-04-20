@@ -1,950 +1,633 @@
 # Insurance Management System
 
-A modern, full-stack insurance management application demonstrating enterprise-grade architecture, security best practices, and cutting-edge technologies. Built with Spring Boot 4, React 18, and MySQL 8, featuring JWT authentication, role-based access control, smart form field tracking, and hot module replacement for optimal developer experience.
-
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-7.0-646CFF.svg)](https://vitejs.dev/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)](https://www.mysql.com/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
+A modern, full-stack insurance management application demonstrating enterprise-grade architecture, best practices, and cutting-edge technologies. Built with Spring Boot 4.0 and React 18, this system showcases professional development patterns for scalable, maintainable applications.
 
 ---
 
-## 🆕 Recent Improvements
+## 🏗️ Architecture Overview
 
-This application has been enhanced with enterprise-grade best practices:
-
-### Frontend Enhancements
-- ✅ **Smart Form Field Tracking**: Only edited fields are sent in POST/PUT requests (reduces payload, prevents unintended overwrites)
-- ✅ Added Error Boundary for graceful error handling
-- ✅ Environment variable configuration (`.env` files)
-- ✅ Enhanced loading states across all pages
-- ✅ Implemented code splitting with React.lazy()
-- ✅ Added PropTypes for runtime type checking
-- ✅ Improved accessibility (ARIA attributes, semantic HTML)
-- ✅ Integrated React Query DevTools (development only)
-- ✅ Added React Hook Form for better form validation
-- ✅ Created centralized error handling UI
-- ✅ **Security**: Migrated from localStorage to sessionStorage (XSS mitigation)
-
-### Backend Enhancements
-- ✅ Added Spring Boot Actuator for monitoring (`/actuator/health`, `/actuator/metrics`)
-- ✅ Implemented Caffeine caching strategy for improved performance
-- ✅ Added comprehensive OpenAPI/Swagger documentation annotations
-- ✅ Implemented request/response logging filter
-- ✅ Added rate limiting with Bucket4j (100 requests/minute per IP)
-- ✅ Environment-based CORS configuration
-- ✅ Created integration tests for full API testing
-- ✅ API versioning strategy configuration
-
----
-
-## 🎯 Key Features
-
-### 🔐 Authentication & Security
-- **Dual Authentication System**: HTTP Basic Auth for login, JWT Bearer tokens for API access
-- **Role-Based Access Control (RBAC)**: Granular permissions for Admin and User roles
-- **Automatic Token Management**: Axios interceptors handle token attachment and 401 redirects
-- **Secure Password Storage**: BCrypt hashing with complexity validation
-- **Authorization at Service Layer**: Business logic enforces ownership and admin checks
-
-### 👥 User Management
-- **Self-Service Registration**: Account creation with comprehensive validation
-- **Profile Management**: Users edit their profiles, admins manage all accounts
-- **Admin Controls**: Full CRUD operations on accounts with safety checks
-- **Account Ownership**: Users cannot delete their own accounts
-
-### 📋 Policy Management
-- **Policy Lifecycle**: Create, read, update policies linked to accounts and insurance lines
-- **Inline Editing**: Edit policies directly in cards without page navigation
-- **Authorization**: Admins manage all policies; users manage only their own
-- **Deletion Control**: Only admins can delete policies
-
-### 🏥 Claims Management
-- **Claims Workflow**: Submit, track, and update claims with status progression
-- **Status Management**: SUBMITTED → IN_PROGRESS → APPROVED/DENIED
-- **Policy Association**: Claims tied to specific policies for ownership validation
-- **Edit Capabilities**: Update claim details, descriptions, and status
-- **Admin Oversight**: Admins can manage all claims; users manage their own
-
-### 🏢 Insurance Lines
-- **Product Catalog**: Define insurance products (Auto, Home, Life, Health)
-- **Coverage Configuration**: Set minimum and maximum coverage amounts
-- **Admin-Only Management**: Complete CRUD operations restricted to administrators
-
-### 🎨 Modern UI/UX
-- **Loading States**: Animated spinners during asynchronous operations
-- **Inline Editing**: Edit records without page navigation
-- **Smart Form Tracking**: Only changed fields are sent to the API (optimized payloads)
-- **Responsive Design**: Grid layout adapts to all screen sizes
-- **Error Handling**: User-friendly error messages with auto-dismiss
-- **Optimistic Updates**: Immediate UI feedback with React Query
-- **Hot Module Replacement**: Instant updates during development
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Frontend (React 18)                       │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Pages │ Components │ Hooks │ Context │ API Client  │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            ↕ (Axios)
+┌─────────────────────────────────────────────────────────────┐
+│                  Backend (Spring Boot 4.0)                   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Controllers │ Services │ Repositories │ Entities    │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Security │ Validation │ Caching │ Rate Limiting     │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            ↕ (JPA)
+┌─────────────────────────────────────────────────────────────┐
+│                    MySQL Database                            │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Accounts │ Policies │ Claims │ Lines │ Addresses    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 🏗️ Technology Stack
+## 🛠️ Technology Stack
 
-### Backend Technologies
+### Backend
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **Java** | 21 | Language |
+| **Spring Boot** | 4.0.5 | Framework |
+| **Spring Security** | 4.0.5 | Authentication & Authorization |
+| **Spring Data JPA** | 4.0.5 | ORM & Database Access |
+| **Spring Validation** | 4.0.5 | Input Validation |
+| **Spring Cache** | 4.0.5 | Caching Layer |
+| **Spring Actuator** | 4.0.5 | Monitoring & Metrics |
+| **MySQL** | 8.0+ | Database |
+| **JWT (JJWT)** | 0.11.5 | Token-based Authentication |
+| **ModelMapper** | 3.1.1 | DTO Mapping |
+| **Bucket4j** | 8.10.1 | Rate Limiting |
+| **Caffeine** | Latest | In-memory Cache |
+| **SpringDoc OpenAPI** | 2.8.6 | API Documentation |
+| **Lombok** | Latest | Boilerplate Reduction |
+| **Maven** | 3.8+ | Build Tool |
 
-| Technology | Version | Purpose | Why We Chose It |
-|------------|---------|---------|-----------------|
-| **Java** | 21 | Programming Language | Latest LTS with Virtual Threads (Project Loom) |
-| **Spring Boot** | 4.0 | Application Framework | Industry standard, comprehensive ecosystem |
-| **Spring Security** | 6.x | Security Framework | Robust authentication/authorization, JWT support |
-| **Spring Data JPA** | 3.x | Data Access | Simplified database operations, repository pattern |
-| **Hibernate** | 6.x | ORM | Mature ORM with excellent Spring integration |
-| **MySQL** | 8.0 | Database | Reliable, performant, widely supported |
-| **ModelMapper** | 3.x | Object Mapping | Automatic entity-to-DTO conversion |
-| **SpringDoc OpenAPI** | 2.x | API Documentation | Auto-generated Swagger UI documentation |
-| **Spotless** | 2.x | Code Formatting | Consistent code style with Eclipse formatter |
-| **JUnit 5** | 5.x | Testing Framework | Modern testing with comprehensive assertions |
-| **Mockito** | 5.x | Mocking Framework | Unit testing with mocked dependencies |
-
-### Frontend Technologies
-
-| Technology | Version | Purpose | Why We Chose It |
-|------------|---------|---------|-----------------|
-| **React** | 18.3 | UI Library | Component-based, concurrent features, huge ecosystem |
-| **Vite** | 7.0 | Build Tool | Lightning-fast HMR, optimized builds |
-| **React Router** | 6.26 | Routing | Modern routing with data loading patterns |
-| **React Query** | 5.59 | Data Fetching | Automatic caching, background updates, loading states |
-| **Axios** | 1.7 | HTTP Client | Promise-based, interceptors for centralized logic |
-| **Jest** | 29.7 | Testing Framework | Comprehensive testing with coverage reports |
-| **React Testing Library** | 14.2 | Component Testing | User-centric testing approach |
-| **ESLint** | 9.15 | Code Quality | Enforce code standards and catch errors |
-
-### DevOps & Infrastructure
-
-| Technology | Purpose | Benefits |
-|------------|---------|----------|
-| **Docker** | Containerization | Consistent environments, easy deployment |
-| **Docker Compose** | Orchestration | Multi-container management with profiles |
-| **nginx** | Web Server | Production-grade serving of React app |
-| **Maven** | Build Tool | Dependency management, build lifecycle |
-| **Git Hooks** | Pre-commit Checks | Automated formatting and testing |
+### Frontend
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **React** | 18.3.1 | UI Framework |
+| **React Router** | 6.26.0 | Client-side Routing |
+| **Axios** | 1.7.7 | HTTP Client |
+| **TanStack Query** | 5.59.0 | Server State Management |
+| **React Hook Form** | 7.53.0 | Form Management |
+| **Vite** | 7.0.0 | Build Tool |
+| **ESLint** | 9.15.0 | Code Linting |
+| **Jest** | 29.7.0 | Testing Framework |
+| **Node.js** | 18+ | Runtime |
 
 ---
 
-## 🎓 Best Practices Implemented
-
-### Architecture & Design
-
-✅ **Separation of Concerns**
-- Clear separation between controller, service, and repository layers
-- DTOs for API contracts, entities for database persistence
-- Service layer contains all business logic and authorization
-
-✅ **RESTful API Design**
-- Standard HTTP methods (GET, POST, PUT, DELETE)
-- Resource-based URLs (`/api/policies/{id}`)
-- Proper status codes (200, 201, 400, 401, 404)
-
-✅ **Security First**
-- Authentication required for all protected endpoints
-- Authorization checks at service layer
-- Password complexity requirements
-- JWT tokens with expiration
-
-✅ **Clean Code**
-- Consistent naming conventions
-- Comprehensive comments and documentation
-- Single Responsibility Principle
-- DRY (Don't Repeat Yourself)
-
-### Frontend Best Practices
-
-✅ **Component Architecture**
-- Reusable components (Spinner)
-- Context for global state (Auth)
-- Custom hooks for logic reuse (useEditedFields)
-- Proper prop validation
-
-✅ **Performance Optimization**
-- React Query for caching and background updates
-- Code splitting with React Router
-- Optimized builds with Vite
-- Lazy loading where appropriate
-
-✅ **User Experience**
-- Loading states for all async operations
-- Error handling with user-friendly messages
-- Inline editing for better workflow
-- Responsive design for all devices
-
-✅ **Code Quality**
-- ESLint for code standards
-- Comprehensive test coverage
-- Consistent formatting
-- Git hooks for quality gates
+## ✨ Best Practices Implemented
 
 ### Backend Best Practices
 
-✅ **Data Access**
-- Repository pattern with Spring Data JPA
-- Entity relationships properly mapped
-- Efficient queries with JPA
-- Transaction management
+#### 1. **RESTful API Design**
+- Proper HTTP methods: GET, POST, PATCH, DELETE
+- Consistent endpoint naming: `/api/v1/{resource}`
+- Versioned API endpoints for backward compatibility
+- Standardized response format with `ApiResponse<T>` wrapper
+- Pagination support with `PagedResponse<T>`
 
-✅ **Error Handling**
-- Global exception handler
-- Custom exceptions for business logic
-- Consistent error responses
-- Proper HTTP status codes
+#### 2. **Security**
+- JWT-based authentication with Bearer tokens
+- Role-based access control (RBAC) with `@PreAuthorize`
+- Password validation with strength requirements
+- Secure password hashing
+- CORS configuration with allowed methods
+- Authorization checks at service layer
 
-✅ **Testing**
-- Unit tests for services
-- Controller tests
-- Mockito for dependencies
-- High test coverage
+#### 3. **Performance & Scalability**
+- Database indexing on frequently queried fields
+- Pagination for large datasets (default 20 items/page)
+- Caching with Caffeine for frequently accessed data
+- N+1 query prevention with proper JPA relationships
+- Read-only transactions for query operations
+- Virtual thread support (Java 21)
 
-✅ **Code Quality**
-- Spotless for formatting
-- Maven for build management
-- Comprehensive logging
-- Git hooks for quality gates
+#### 4. **Code Quality**
+- Layered architecture (Controller → Service → Repository)
+- Dependency injection with Spring
+- DTO pattern for API contracts
+- Entity mapping with ModelMapper
+- Comprehensive input validation with Jakarta Validation
+- Consistent error handling with custom exceptions
+- Spotless code formatting
+
+#### 5. **Logging & Monitoring**
+- Request ID tracking for distributed tracing
+- Structured logging with request context
+- Spring Actuator endpoints for health checks
+- Metrics collection for monitoring
+
+#### 6. **Testing**
+- Unit tests for all controllers
+- Mockito for dependency mocking
+- AssertJ for fluent assertions
+- Test coverage for CRUD operations
+- Error scenario testing
+
+#### 7. **Data Validation**
+- Bean validation annotations (`@NotNull`, `@Size`, etc.)
+- Custom validation constraints
+- Field-level and cross-field validation
+- Validation error messages in API responses
+
+### Frontend Best Practices
+
+#### 1. **Component Architecture**
+- Functional components with hooks
+- Reusable component patterns
+- Proper component composition
+- Clear separation of concerns
+- Props validation with PropTypes
+
+#### 2. **State Management**
+- React Context for authentication state
+- TanStack Query for server state
+- Local state with `useState` for UI state
+- Custom hooks for logic reuse (`useEditedFields`)
+- Proper state updates and cleanup
+
+#### 3. **API Integration**
+- Centralized API client with Axios
+- Request/response interceptors
+- Automatic JWT token injection
+- Response unwrapping for `ApiResponse<T>`
+- Consistent error handling
+- Parameterized API versioning
+
+#### 4. **Code Quality**
+- ESLint configuration for code standards
+- Consistent naming conventions
+- Proper error handling with `getErrorMessage()` utility
+- Form validation with React Hook Form
+- Accessibility considerations
+
+#### 5. **Performance**
+- Code splitting with React Router
+- Lazy loading of routes
+- Efficient re-renders with proper dependencies
+- Memoization where appropriate
+- Optimized bundle size
+
+#### 6. **Testing**
+- Jest for unit testing
+- React Testing Library for component testing
+- Mock API responses
+- User event simulation
+- Coverage reporting
+
+#### 7. **Environment Management**
+- Environment-specific configurations
+- `.env` files for secrets
+- Parameterized API base URL and version
+- Development vs. production builds
 
 ---
 
-## 🚀 Quick Start
+## 📋 Project Structure
+
+### Backend
+```
+demo-api/
+├── src/main/java/com/api/demo/
+│   ├── config/              # Configuration classes
+│   │   ├── AppConfig.java
+│   │   ├── SecurityContext.java
+│   │   ├── JwtGenerator.java
+│   │   ├── JwtValidator.java
+│   │   └── RateLimitConfig.java
+│   ├── controller/          # REST Controllers
+│   │   ├── AccountController.java
+│   │   ├── PolicyController.java
+│   │   ├── ClaimController.java
+│   │   ├── LineController.java
+│   │   ├── CoverageController.java
+│   │   └── PublicController.java
+│   ├── service/             # Business Logic
+│   │   ├── AccountService.java
+│   │   ├── PolicyService.java
+│   │   ├── ClaimService.java
+│   │   ├── LineService.java
+│   │   └── AuthorizationService.java
+│   ├── repository/          # Data Access
+│   │   ├── AccountRepository.java
+│   │   ├── PolicyRepository.java
+│   │   ├── ClaimRepository.java
+│   │   └── LineRepository.java
+│   ├── entity/              # JPA Entities
+│   │   ├── Account.java
+│   │   ├── Policy.java
+│   │   ├── Claim.java
+│   │   ├── Line.java
+│   │   └── Address.java
+│   ├── dto/                 # Data Transfer Objects
+│   │   ├── AccountDTO.java
+│   │   ├── PolicyDTO.java
+│   │   ├── ClaimDTO.java
+│   │   └── LineDTO.java
+│   ├── model/               # Response Models
+│   │   ├── ApiResponse.java
+│   │   ├── PagedResponse.java
+│   │   ├── ClaimStatus.java
+│   │   └── LoginRequest.java
+│   ├── filter/              # HTTP Filters
+│   │   ├── RequestIdFilter.java
+│   │   ├── RequestLoggingFilter.java
+│   │   └── RateLimitFilter.java
+│   ├── exception/           # Custom Exceptions
+│   │   ├── GlobalExceptionHandler.java
+│   │   └── ResourceNotFoundException.java
+│   └── utils/               # Utility Classes
+│       ├── JwtUtil.java
+│       ├── PasswordValidator.java
+│       └── NumberGenerator.java
+├── src/test/java/           # Unit Tests
+├── pom.xml                  # Maven Configuration
+└── application.properties   # Application Configuration
+```
+
+### Frontend
+```
+demo-ui/
+├── src/
+│   ├── pages/               # Page Components
+│   │   ├── Login.jsx
+│   │   ├── Register.jsx
+│   │   ├── Accounts.jsx
+│   │   ├── Policies.jsx
+│   │   ├── Claims.jsx
+│   │   ├── Lines.jsx
+│   │   ├── CoverageCalculator.jsx
+│   │   └── Home.jsx
+│   ├── components/          # Reusable Components
+│   │   ├── Spinner.jsx
+│   │   ├── ErrorBoundary.jsx
+│   │   └── Navigation.jsx
+│   ├── context/             # React Context
+│   │   └── AuthContext.jsx
+│   ├── hooks/               # Custom Hooks
+│   │   └── useEditedFields.js
+│   ├── api/                 # API Integration
+│   │   └── client.js
+│   ├── utils/               # Utility Functions
+│   │   ├── errorHandler.js
+│   │   └── secureStorage.js
+│   ├── config/              # Configuration
+│   │   └── api.config.js
+│   ├── __tests__/           # Test Files
+│   │   ├── pages/
+│   │   ├── api/
+│   │   └── context/
+│   ├── App.jsx
+│   └── main.jsx
+├── .env.example             # Environment Template
+├── .env.development         # Development Config
+├── .env.production          # Production Config
+├── package.json
+├── vite.config.js
+├── jest.config.js
+└── eslint.config.js
+```
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
+- Java 21+
+- Node.js 18+
+- MySQL 8.0+
+- Maven 3.8+
+- npm or yarn
 
-- **Docker Desktop** (recommended) - [Download](https://www.docker.com/products/docker-desktop/)
-- **OR** Local setup:
-  - Java 21+ - [Download](https://adoptium.net/)
-  - Maven 3.9+ - [Download](https://maven.apache.org/download.cgi)
-  - MySQL 8.0+ - [Download](https://dev.mysql.com/downloads/mysql/)
-  - Node.js 20+ - [Download](https://nodejs.org/)
+### Backend Setup
 
-### Option 1: Docker (Recommended)
-
-**Development Mode** (with Hot Module Replacement):
-
+1. **Clone and navigate**
 ```bash
-# Windows
-start-dev.bat
-
-# Linux/Mac
-chmod +x start-dev.sh
-./start-dev.sh
-
-# Or manually
-docker-compose --profile dev up --build
-```
-
-**Access the application:**
-- Frontend (Dev): http://localhost:5173
-- Backend API: http://localhost:8080
-- Swagger UI: http://localhost:8080/swagger-ui/index.html
-- Database: localhost:3306
-
-**Production Mode** (nginx serving built files):
-
-```bash
-# Windows
-start-prod.bat
-
-# Linux/Mac
-chmod +x start-prod.sh
-./start-prod.sh
-
-# Or manually
-docker-compose --profile prod up --build
-```
-
-**Access the application:**
-- Frontend (Prod): http://localhost:3000
-- Backend API: http://localhost:8080
-- Swagger UI: http://localhost:8080/swagger-ui/index.html
-- Database: localhost:3306
-
-### Option 2: Local Development
-
-#### Backend Setup
-
-```bash
-# 1. Create MySQL database
-mysql -u root -p -e "CREATE DATABASE insurance;"
-
-# 2. (Optional) Load seed data
-mysql -u root -p insurance < docker/init.sql
-
-# 3. Navigate to backend directory
+git clone <repository>
 cd demo-api
-
-# 4. Run the application
-./mvnw spring-boot:run
-
-# Or on Windows
-mvnw.cmd spring-boot:run
 ```
 
-**Override database credentials if needed:**
+2. **Configure database**
 ```bash
-DB_HOST=localhost DB_PORT=3306 DB_NAME=insurance DB_USERNAME=root DB_PASSWORD=yourpassword ./mvnw spring-boot:run
+# Update application.properties
+spring.datasource.url=jdbc:mysql://localhost:3306/insurance_db
+spring.datasource.username=root
+spring.datasource.password=your_password
 ```
 
-**Backend runs on:** http://localhost:8080
-
-#### Frontend Setup
-
+3. **Build and run**
 ```bash
-# 1. Navigate to frontend directory
+mvn clean install
+mvn spring-boot:run
+```
+
+4. **Access API documentation**
+```
+http://localhost:8080/swagger-ui.html
+```
+
+### Frontend Setup
+
+1. **Navigate and install**
+```bash
 cd demo-ui
-
-# 2. Install dependencies
 npm install
+```
 
-# 3. Start development server
+2. **Configure environment**
+```bash
+cp .env.example .env.development
+# Update VITE_API_BASE_URL if needed
+```
+
+3. **Start development server**
+```bash
 npm run dev
 ```
 
-**Frontend runs on:** http://localhost:5173
-
-The Vite dev server automatically proxies API calls to `localhost:8080`.
-
----
-
-## 🔑 Test Credentials
-
-The database is seeded with test accounts (all passwords: `Password1!`):
-
-| Email | Password | Role | Description |
-|-------|----------|------|-------------|
-| test@test.com | Password1! | **Admin** | Full access to all accounts, policies, claims, and lines |
-| john.doe@example.com | Password1! | User | Regular user with 3 policies and claims |
-| jane.smith@example.com | Password1! | User | Regular user with 2 policies and claims |
-| bob.johnson@example.com | Password1! | User | Regular user with 3 policies and claims |
-
----
-
-## 📁 Project Structure
-
+4. **Access application**
 ```
-insurance-management-system/
-├── demo-api/                           # Spring Boot Backend
-│   ├── src/main/java/com/api/demo/
-│   │   ├── config/                     # Configuration classes
-│   │   │   ├── AppConfig.java          # ModelMapper, CORS
-│   │   │   ├── JwtGenerator.java       # JWT token generation
-│   │   │   ├── JwtValidator.java       # JWT token validation
-│   │   │   ├── SecurityContext.java    # Spring Security config
-│   │   │   └── VirtualThreadConfig.java # Virtual threads setup
-│   │   ├── constraints/                # Validation constraints
-│   │   │   └── SizeConstraints.java    # Field size constants
-│   │   ├── controller/                 # REST Controllers
-│   │   │   ├── AccountController.java  # Account endpoints
-│   │   │   ├── ClaimController.java    # Claim endpoints
-│   │   │   ├── CoverageController.java # Coverage calculation
-│   │   │   ├── LineController.java     # Insurance line endpoints
-│   │   │   ├── PolicyController.java   # Policy endpoints
-│   │   │   └── PublicController.java   # Public endpoints (login, register)
-│   │   ├── dto/                        # Data Transfer Objects
-│   │   │   ├── AccountDTO.java         # Account response
-│   │   │   ├── ClaimDTO.java           # Claim response
-│   │   │   ├── LineDTO.java            # Line response
-│   │   │   └── PolicyDTO.java          # Policy response
-│   │   ├── entity/                     # JPA Entities
-│   │   │   ├── Account.java            # User account
-│   │   │   ├── Address.java            # Embedded address
-│   │   │   ├── Claim.java              # Insurance claim
-│   │   │   ├── Line.java               # Insurance product line
-│   │   │   └── Policy.java             # Insurance policy
-│   │   ├── exception/                  # Exception handling
-│   │   │   ├── GlobelExceptionHandler.java # Global error handler
-│   │   │   └── ResourceNotFoundException.java # 404 exception
-│   │   ├── model/                      # Enums and models
-│   │   │   ├── ClaimStatus.java        # Claim status enum
-│   │   │   └── Response.java           # Generic response wrapper
-│   │   ├── repository/                 # Spring Data Repositories
-│   │   │   ├── AccountRepository.java  # Account data access
-│   │   │   ├── ClaimRepository.java    # Claim data access
-│   │   │   ├── LineRepository.java     # Line data access
-│   │   │   └── PolicyRepository.java   # Policy data access
-│   │   ├── service/                    # Service interfaces
-│   │   │   ├── AccountService.java
-│   │   │   ├── AccountUserDetailsService.java # Spring Security integration
-│   │   │   ├── AuthorizationService.java # Authorization logic
-│   │   │   ├── ClaimService.java
-│   │   │   ├── CoverageCalculationService.java
-│   │   │   ├── LineService.java
-│   │   │   ├── PolicyService.java
-│   │   │   └── impl/                   # Service implementations
-│   │   │       ├── AccountServiceImpl.java
-│   │   │       ├── ClaimServiceImpl.java
-│   │   │       ├── LineServiceImpl.java
-│   │   │       └── PolicyServiceImpl.java
-│   │   └── DemoApplication.java        # Spring Boot main class
-│   ├── src/main/resources/
-│   │   └── application.properties      # Application configuration
-│   ├── src/test/                       # Test suite
-│   │   ├── controller/                 # Controller tests
-│   │   └── service/                    # Service tests
-│   ├── pom.xml                         # Maven dependencies
-│   ├── mvnw                            # Maven wrapper (Unix)
-│   └── mvnw.cmd                        # Maven wrapper (Windows)
-│
-├── demo-ui/                            # React Frontend
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── client.js               # Axios HTTP client with interceptors
-│   │   ├── components/
-│   │   │   └── Spinner.jsx             # Loading spinner component
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx         # Authentication context
-│   │   ├── hooks/
-│   │   │   └── useEditedFields.js      # Track edited form fields
-│   │   ├── pages/                      # Page components
-│   │   │   ├── Accounts.jsx            # Account management (React Query)
-│   │   │   ├── Claims.jsx              # Claims management
-│   │   │   ├── CoverageCalculator.jsx  # Coverage calculator
-│   │   │   ├── Home.jsx                # Landing page
-│   │   │   ├── Lines.jsx               # Insurance lines
-│   │   │   ├── Login.jsx               # Login page
-│   │   │   ├── Policies.jsx            # Policy management
-│   │   │   └── Register.jsx            # Registration page
-│   │   ├── __tests__/                  # Jest tests
-│   │   │   ├── context/                # Context tests
-│   │   │   └── pages/                  # Page tests
-│   │   ├── App.jsx                     # Main app component
-│   │   ├── index.css                   # Global styles
-│   │   └── main.jsx                    # React entry point
-│   ├── Dockerfile                      # Production build
-│   ├── nginx.conf                      # nginx configuration
-│   ├── vite.config.js                  # Vite configuration
-│   ├── jest.config.js                  # Jest configuration
-│   ├── eslint.config.js                # ESLint configuration
-│   ├── package.json                    # npm dependencies
-│   └── .env.example                    # Environment variables template
-│
-├── docker/
-│   └── init.sql                        # Database schema and seed data
-│
-├── Dockerfile                          # Backend Docker build
-├── docker-compose.yml                  # Multi-container orchestration
-├── start-dev.bat                       # Windows dev mode script
-├── start-dev.sh                        # Unix dev mode script
-├── start-prod.bat                      # Windows prod mode script
-├── start-prod.sh                       # Unix prod mode script
-│
-├── QUICK_START.md                      # Quick start guide
-├── DEVELOPMENT.md                      # Development guide
-├── DOCKER_PROFILES.md                  # Docker profiles guide
-├── HMR_SETUP.md                        # HMR configuration guide
-└── README.md                           # This file
+http://localhost:5173
 ```
 
 ---
 
-## 🎯 Smart Form Field Tracking
+## 📚 API Endpoints
 
-The frontend implements intelligent form field tracking to optimize API requests:
+### Authentication
+- `POST /api/v1/auth/register` - Register new account
+- `POST /api/v1/auth/login` - Login and get JWT token
 
-### How It Works
+### Accounts
+- `GET /api/v1/accounts` - List all accounts (paginated)
+- `GET /api/v1/accounts/{id}` - Get account details
+- `PATCH /api/v1/accounts/{id}` - Update account (partial)
+- `DELETE /api/v1/accounts/{id}` - Delete account
 
-The `useEditedFields` hook tracks which form fields have been modified by the user:
+### Policies
+- `GET /api/v1/policies` - List all policies
+- `GET /api/v1/policies/{id}` - Get policy details
+- `POST /api/v1/policies/{accountId}` - Create policy
+- `PATCH /api/v1/policies/{id}` - Update policy (partial)
+- `DELETE /api/v1/policies/{id}` - Delete policy
 
-```javascript
-// In a form component
-const { trackEdit, getEditedData, reset } = useEditedFields({})
+### Claims
+- `GET /api/v1/claims` - List all claims (paginated)
+- `GET /api/v1/claims/{id}` - Get claim details
+- `POST /api/v1/claims/{policyId}` - Create claim
+- `PATCH /api/v1/claims/{id}` - Update claim (partial)
+- `DELETE /api/v1/claims/{id}` - Delete claim
 
-// Track edits on input change
-<input onChange={(e) => {
-  trackEdit('firstName')
-  setForm({ ...form, firstName: e.target.value })
-}} />
+### Lines
+- `GET /api/v1/lines` - List all lines
+- `GET /api/v1/lines/{id}` - Get line details
+- `POST /api/v1/lines` - Create line (admin only)
+- `PATCH /api/v1/lines/{id}` - Update line (admin only)
+- `DELETE /api/v1/lines/{id}` - Delete line (admin only)
 
-// Send only edited fields to API
-const handleUpdate = () => {
-  const editedData = getEditedData(form)
-  updateAccount(id, editedData) // Only sends changed fields
-}
-```
-
-### Benefits
-
-✅ **Reduced Payload Size**: Only changed fields are transmitted
-✅ **Prevents Unintended Overwrites**: Fields not edited by user aren't sent
-✅ **Better Performance**: Smaller network requests
-✅ **Cleaner API Contracts**: Backend receives only intentional changes
-✅ **Improved User Experience**: No accidental data loss
-
-### Implementation Details
-
-**Hook Location**: `demo-ui/src/hooks/useEditedFields.js`
-
-**Used In:**
-- Accounts page (all account fields + address)
-- Policies page (lineId, premium, startDate, endDate)
-- Claims page (description, claimStatus)
-- Lines page (name, description, minCoverage, maxCoverage)
-
-**Example Flow:**
-1. User opens edit form → `reset()` clears tracking
-2. User changes firstName → `trackEdit('firstName')` records it
-3. User changes address.city → `trackEdit('address')` records it
-4. User clicks Save → `getEditedData()` returns `{ firstName: "...", address: {...} }`
-5. API receives only those two fields
+### Coverage
+- `GET /api/v1/coverage/calculate/{accountId}/{lineId}` - Calculate coverage
 
 ---
 
-### 1. Register New Account
+## 🔐 Authentication & Authorization
 
-```http
-POST /register
-Content-Type: application/json
+### JWT Token Flow
+1. User registers or logs in
+2. Backend generates JWT token with user claims
+3. Frontend stores token in secure storage
+4. Token sent in `Authorization: Bearer <token>` header
+5. Backend validates token on each request
+6. Token expires after configured duration
 
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john@example.com",
-  "password": "Password1@",
-  "phoneNumber": "1234567890",
-  "about": "Test user",
-  "dateOfBirth": "1990-01-01"
-}
+### Role-Based Access Control
+- **ADMIN**: Full access to all resources
+- **USER**: Access to own resources only
+
+### Authorization Annotations
+```java
+@PreAuthorize("hasRole('ADMIN')")                    // Admin only
+@PreAuthorize("hasRole('ADMIN') or @authorizationService.isOwner(#id)")  // Admin or owner
 ```
-
-**Password Requirements:**
-- Minimum 8 characters
-- At least one uppercase letter
-- At least one lowercase letter
-- At least one number
-- At least one special character
-
-### 2. Login (Get JWT Token)
-
-```http
-GET /login
-Authorization: Basic <base64(email:password)>
-```
-
-**Response:**
-```http
-HTTP/1.1 200 OK
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-The JWT token is returned in the `Authorization` response header.
-
-### 3. Use JWT on Protected Endpoints
-
-```http
-GET /api/accounts/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-**Token Management:**
-- Frontend stores JWT in localStorage
-- Axios interceptor automatically attaches token to requests
-- 401 responses trigger automatic logout and redirect
 
 ---
 
-## 📡 API Endpoints
+## 🗄️ Database Schema
 
-### Public Endpoints
+### Entities
+- **Account**: User accounts with authentication
+- **Policy**: Insurance policies linked to accounts
+- **Claim**: Insurance claims linked to policies
+- **Line**: Insurance line types (Auto, Home, etc.)
+- **Address**: Address information for accounts
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/register` | Create new account | None |
-| GET | `/login` | Sign in, receive JWT | Basic Auth |
-| GET | `/welcome` | Health check | None |
+### Key Relationships
+- Account → Policies (1:N)
+- Account → Claims (through Policy)
+- Policy → Claims (1:N)
+- Policy → Line (N:1)
+- Account → Address (1:1)
 
-### Account Management
-
-| Method | Endpoint | Description | Auth | Admin Only |
-|--------|----------|-------------|------|------------|
-| GET | `/api/accounts/` | List all accounts | JWT | ✅ |
-| GET | `/api/accounts/{id}` | Get account by ID | JWT | Own or Admin |
-| GET | `/api/accounts/email` | Get by email | JWT | Own or Admin |
-| PUT | `/api/accounts/{id}` | Update account | JWT | Own or Admin |
-| DELETE | `/api/accounts/{id}` | Delete account | JWT | ✅ (not self) |
-
-### Policy Management
-
-| Method | Endpoint | Description | Auth | Admin Only |
-|--------|----------|-------------|------|------------|
-| GET | `/api/policies/` | List policies | JWT | All or Own |
-| GET | `/api/policies/{id}` | Get policy by ID | JWT | Own or Admin |
-| POST | `/api/policies/{accountId}` | Create policy | JWT | Own or Admin |
-| PUT | `/api/policies/{id}` | Update policy | JWT | Own or Admin |
-| DELETE | `/api/policies/{id}` | Delete policy | JWT | ✅ |
-
-### Claims Management
-
-| Method | Endpoint | Description | Auth | Admin Only |
-|--------|----------|-------------|------|------------|
-| GET | `/api/claims/` | List claims | JWT | All or Own |
-| GET | `/api/claims/{id}` | Get claim by ID | JWT | Own or Admin |
-| POST | `/api/claims/{policyId}` | Create claim | JWT | Own or Admin |
-| PUT | `/api/claims/{id}` | Update claim | JWT | Own or Admin |
-| DELETE | `/api/claims/{id}` | Delete claim | JWT | ✅ |
-
-**Claim Statuses:** `SUBMITTED`, `IN_PROGRESS`, `APPROVED`, `DENIED`
-
-### Insurance Lines
-
-| Method | Endpoint | Description | Auth | Admin Only |
-|--------|----------|-------------|------|------------|
-| GET | `/api/lines/` | List all lines | JWT | No |
-| GET | `/api/lines/{id}` | Get line by ID | JWT | No |
-| POST | `/api/lines/` | Create line | JWT | ✅ |
-| PUT | `/api/lines/{id}` | Update line | JWT | ✅ |
-| DELETE | `/api/lines/{id}` | Delete line | JWT | ✅ |
-
-### Coverage Calculator
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/coverage/calculate/{accountId}/{lineId}` | Calculate coverage | JWT |
+### Indexes
+- Account: email, admin status
+- Policy: accountId, lineId
+- Claim: policyId, claimStatus
+- Line: name
 
 ---
 
 ## 🧪 Testing
 
 ### Backend Tests
-
 ```bash
-cd demo-api
-
 # Run all tests
-./mvnw test
-
-# Run with coverage
-./mvnw test jacoco:report
+mvn test
 
 # Run specific test class
-./mvnw test -Dtest=AccountServiceImplTest
+mvn test -Dtest=AccountControllerTest
 
-# Skip tests during build
-./mvnw package -DskipTests
+# Run with coverage
+mvn test jacoco:report
 ```
 
-**Test Coverage:**
-- Service layer unit tests with Mockito
-- Controller unit tests
-- Authorization service tests
-- Repository integration tests (H2 in-memory database)
-
 ### Frontend Tests
-
 ```bash
-cd demo-ui
-
 # Run all tests
 npm test
 
 # Run with coverage
 npm test -- --coverage
 
-# Run in watch mode
+# Watch mode
 npm run test:watch
-
-# Run specific test file
-npm test -- Login.test.jsx
-```
-
-**Test Coverage:**
-- Component rendering tests
-- User interaction tests
-- Context provider tests
-- API client tests
-- Coverage thresholds: 85% lines, 80% branches
-
----
-
-## 🎨 Code Quality
-
-### Backend Formatting
-
-```bash
-cd demo-api
-
-# Format code
-./mvnw spotless:apply
-
-# Check formatting
-./mvnw spotless:check
-```
-
-**Configuration:**
-- Eclipse formatter
-- Consistent indentation (tabs)
-- Import organization
-- Line length: 120 characters
-
-### Frontend Linting
-
-```bash
-cd demo-ui
-
-# Lint code
-npm run lint
-
-# Auto-fix issues
-npm run lint:fix
-```
-
-**Configuration:**
-- ESLint with React plugins
-- React Hooks rules
-- React Refresh rules
-- No unused variables
-
-### Pre-Commit Hooks
-
-Located at `.git/hooks/pre-commit`:
-
-**Automatic Checks:**
-1. Format Java code with Spotless
-2. Lint JavaScript/React code
-3. Run backend tests
-4. Run frontend tests
-5. Re-stage formatted files
-6. **Block commit if tests fail**
-
-**Setup:**
-```bash
-# Make hook executable (Unix/Mac)
-chmod +x .git/hooks/pre-commit
 ```
 
 ---
 
-## ⚙️ Configuration
+## 📊 Performance Optimizations
 
-### Backend Configuration
+### Backend
+- **Pagination**: Default 20 items per page
+- **Caching**: Caffeine cache for accounts and policies
+- **Indexing**: Database indexes on foreign keys
+- **Read-only Transactions**: `@Transactional(readOnly=true)` for queries
+- **Lazy Loading**: Proper JPA fetch strategies
+- **Rate Limiting**: Bucket4j for API rate limiting
 
-File: `demo-api/src/main/resources/application.properties`
-
-| Property | Default | Description |
-|----------|---------|-------------|
-| `DB_HOST` | `localhost` | MySQL host |
-| `DB_PORT` | `3306` | MySQL port |
-| `DB_NAME` | `insurance` | Database name |
-| `DB_USERNAME` | `root` | Database username |
-| `DB_PASSWORD` | `root` | Database password |
-| `spring.threads.virtual.enabled` | `true` | Enable Java 21 virtual threads |
-| `spring.jpa.hibernate.ddl-auto` | `update` | Schema update strategy |
-| `spring.jpa.show-sql` | `false` | Show SQL queries in logs |
-
-**Environment Variables:**
-```bash
-# Override in shell
-export DB_HOST=myhost
-export DB_PORT=3307
-export DB_NAME=mydb
-export DB_USERNAME=myuser
-export DB_PASSWORD=mypassword
-
-# Or inline
-DB_HOST=myhost ./mvnw spring-boot:run
-```
-
-### Frontend Configuration
-
-File: `demo-ui/.env.local` (create from `.env.example`)
-
-```env
-# API URL for proxying requests
-VITE_API_URL=http://localhost:8080
-```
-
-**Vite automatically loads:**
-- `.env` - All environments
-- `.env.local` - Local overrides (gitignored)
-- `.env.development` - Development mode
-- `.env.production` - Production build
+### Frontend
+- **Code Splitting**: Route-based code splitting
+- **Lazy Loading**: React.lazy for components
+- **Memoization**: React.memo for expensive components
+- **Query Caching**: TanStack Query caching
+- **Bundle Optimization**: Vite tree-shaking
 
 ---
 
-## 🚀 Deployment
+## 🔍 Monitoring & Observability
 
-### Production Build
-
-**Backend:**
-```bash
-cd demo-api
-./mvnw clean package -DskipTests
-# JAR file: target/demo-0.0.1-SNAPSHOT.jar
-
-# Run JAR
-java -jar target/demo-0.0.1-SNAPSHOT.jar
+### Health Checks
+```
+GET /actuator/health
 ```
 
-**Frontend:**
-```bash
-cd demo-ui
-npm run build
-# Build output: dist/
-
-# Preview build
-npm run preview
+### Metrics
+```
+GET /actuator/metrics
 ```
 
-### Docker Production
-
-```bash
-# Build and start production mode
-docker-compose --profile prod up --build -d
-
-# Access at http://localhost:3000
-```
-
-**Production Stack:**
-- MySQL 8.0 (persistent volume)
-- Spring Boot (JAR execution)
-- nginx (serving React build)
+### Request Tracking
+- Request ID generated for each request
+- Included in response headers
+- Useful for distributed tracing
 
 ---
 
-## 🔧 Troubleshooting
+## 📝 API Response Format
 
-### Common Issues
-
-**Port Already in Use:**
-```bash
-# Check what's using the port
-netstat -ano | findstr :8080  # Windows
-lsof -i :8080                 # Linux/Mac
-
-# Kill the process or change port in application.properties
-```
-
-**Database Connection Failed:**
-```bash
-# Verify MySQL is running
-docker-compose ps
-
-# Check logs
-docker-compose logs mysql
-
-# Reset database
-docker-compose down -v
-docker-compose up --build
-```
-
-**HMR Not Working:**
-```bash
-# Restart dev container
-docker-compose restart ui-dev
-
-# Check logs
-docker-compose logs -f ui-dev
-
-# Verify WebSocket connection in browser console
-```
-
-**Tests Failing:**
-```bash
-# Backend - clean and rebuild
-cd demo-api
-./mvnw clean test
-
-# Frontend - clear cache
-cd demo-ui
-rm -rf node_modules
-npm install
-npm test
-```
-
----
-
-## 📊 Performance
-
-### Java 21 Virtual Threads
-
-The application uses **Project Loom** virtual threads for improved concurrency:
-
-```java
-@Configuration
-public class VirtualThreadConfig {
-    @Bean
-    public TomcatProtocolHandlerCustomizer<?> protocolHandlerVirtualThreadExecutorCustomizer() {
-        return protocolHandler -> {
-            protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
-        };
-    }
+### Success Response
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { /* resource data */ },
+  "timestamp": "2024-04-20T10:30:00Z",
+  "requestId": "req-12345"
 }
 ```
 
-**Benefits:**
-- Handle thousands of concurrent requests
-- No thread pool tuning needed
-- Better resource utilization
-- Ideal for blocking I/O (JPA/MySQL)
-
-### React Query Caching
-
-The Accounts page uses React Query for optimized data fetching:
-
-```javascript
-const { data: accounts, isLoading } = useQuery({
-  queryKey: ['accounts'],
-  queryFn: async () => (await getAccounts()).data,
-})
+### Error Response
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "data": null,
+  "timestamp": "2024-04-20T10:30:00Z",
+  "requestId": "req-12345"
+}
 ```
 
-**Benefits:**
-- Automatic caching
-- Background refetching
-- Optimistic updates
-- Loading states
-- Error handling
+### Paginated Response
+```json
+{
+  "success": true,
+  "message": "Accounts retrieved",
+  "data": {
+    "content": [ /* items */ ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 100,
+    "totalPages": 5,
+    "hasNext": true,
+    "hasPrevious": false
+  }
+}
+```
+
+---
+
+## 🛡️ Security Considerations
+
+- **HTTPS**: Use HTTPS in production
+- **CORS**: Configured for specific origins
+- **CSRF**: Spring Security CSRF protection
+- **SQL Injection**: JPA parameterized queries
+- **XSS**: React automatic escaping
+- **Password**: Minimum 8 characters, strength validation
+- **Token Expiry**: Configurable JWT expiration
+- **Rate Limiting**: Prevent brute force attacks
+
+---
+
+## 📦 Deployment
+
+### Docker
+```bash
+# Build backend image
+docker build -t insurance-api:latest ./demo-api
+
+# Build frontend image
+docker build -t insurance-ui:latest ./demo-ui
+
+# Run with docker-compose
+docker-compose up
+```
+
+### Production Checklist
+- [ ] Set environment variables
+- [ ] Configure database backups
+- [ ] Enable HTTPS/SSL
+- [ ] Configure logging
+- [ ] Set up monitoring
+- [ ] Configure rate limiting
+- [ ] Enable caching
+- [ ] Set JWT expiration
+- [ ] Configure CORS origins
+- [ ] Enable security headers
 
 ---
 
 ## 🤝 Contributing
 
-### Development Workflow
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make changes** and test thoroughly
-4. **Format code**: `./mvnw spotless:apply` and `npm run lint:fix`
-5. **Run tests**: `./mvnw test` and `npm test`
-6. **Commit changes**: `git commit -m 'Add amazing feature'`
-7. **Push to branch**: `git push origin feature/amazing-feature`
-8. **Open a Pull Request**
+1. Create feature branch: `git checkout -b feature/name`
+2. Commit changes: `git commit -am 'Add feature'`
+3. Push to branch: `git push origin feature/name`
+4. Submit pull request
 
 ### Code Standards
-
 - Follow existing code style
-- Write comprehensive tests
+- Write unit tests for new features
 - Update documentation
-- Use meaningful commit messages
-- Keep PRs focused and small
+- Run linting: `npm run lint` (frontend), `mvn spotless:apply` (backend)
 
 ---
 
 ## 📄 License
 
-This project is a demonstration application for educational purposes.
-
----
-
-## 🙏 Acknowledgments
-
-- **Spring Boot Team** - Excellent framework and documentation
-- **React Team** - Modern UI library with great DX
-- **Vite Team** - Lightning-fast build tool
-- **TanStack Query** - Powerful data fetching library
-- **Docker** - Simplified deployment and development
+This project is licensed under the MIT License - see LICENSE file for details.
 
 ---
 
 ## 📞 Support
 
-For questions, issues, or contributions:
-
-1. Check the [documentation](#-documentation)
-2. Review [troubleshooting](#-troubleshooting)
-3. Open an issue on GitHub
-4. Consult the [API documentation](http://localhost:8080/swagger-ui/index.html)
+For issues, questions, or suggestions:
+1. Check existing documentation
+2. Review API documentation at `/swagger-ui.html`
+3. Check test files for usage examples
+4. Create an issue with detailed description
 
 ---
 
-**Built with ❤️ using modern technologies and best practices**
+## 🎯 Key Features
+
+✅ **JWT Authentication** - Secure token-based auth
+✅ **Role-Based Access Control** - Admin and user roles
+✅ **Pagination** - Efficient data retrieval
+✅ **Caching** - Improved performance
+✅ **Rate Limiting** - API protection
+✅ **Input Validation** - Data integrity
+✅ **Error Handling** - Consistent error responses
+✅ **API Documentation** - Swagger/OpenAPI
+✅ **Comprehensive Testing** - Unit and integration tests
+✅ **Modern Stack** - Latest technologies
+✅ **Best Practices** - Enterprise patterns
+✅ **Scalable Architecture** - Ready for growth
+
+---
+
+**Last Updated**: April 2026
+**Version**: 1.0.0

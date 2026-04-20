@@ -14,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 @Getter
@@ -22,7 +23,9 @@ import jakarta.persistence.Table;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "policy")
+@Table(name = "policy", indexes = {@Index(name = "idx_account_id", columnList = "account_id"),
+		@Index(name = "idx_line_id", columnList = "line_id"),
+		@Index(name = "idx_start_date", columnList = "start_date")})
 public class Policy {
 
 	@Id
@@ -34,7 +37,7 @@ public class Policy {
 
 	@Column(name = "account_id")
 	private Integer accountId;
-	
+
 	private BigDecimal premium;
 
 	@Column(name = "start_date")

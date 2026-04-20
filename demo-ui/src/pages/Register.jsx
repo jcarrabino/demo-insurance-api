@@ -42,10 +42,12 @@ export default function Register() {
       setTimeout(() => navigate('/login'), 1500)
     } catch (err) {
       const data = err.response?.data
-      if (typeof data === 'object' && !data.message && !data.Massege) {
+      // Handle both wrapped and unwrapped error responses
+      if (typeof data === 'object' && !data.message && !data.Massege && !data.data) {
         setError(Object.values(data).join(', '))
       } else {
-        setError(data?.message || data?.Massege || 'Registration failed')
+        const errorMessage = data?.message || data?.data?.message || data?.Massege || 'Registration failed'
+        setError(errorMessage)
       }
     }
   }

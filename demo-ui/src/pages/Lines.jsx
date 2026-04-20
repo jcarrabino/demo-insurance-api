@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getLines, createLine, updateLine, deleteLine } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useEditedFields } from '../hooks/useEditedFields'
+import { getErrorMessage } from '../utils/errorHandler'
 import Spinner from '../components/Spinner'
 
 const empty = { name: '', description: '', maxCoverage: '', minCoverage: '' }
@@ -22,7 +23,9 @@ export default function Lines() {
   const load = async () => {
     setIsLoading(true)
     try { 
-      setLines((await getLines()).data) 
+      const linesData = await getLines()
+      // getLines returns List<T> directly (unwrapped by interceptor)
+      setLines(Array.isArray(linesData.data) ? linesData.data : [])
     } catch { 
       setError('Failed to load lines') 
     } finally {
@@ -40,8 +43,7 @@ export default function Lines() {
       await createLine(form)
       setSuccess('Line created'); setForm(empty); setShowForm(false); load()
     } catch (err) {
-      const data = err.response?.data
-      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.Massege || 'Failed')
+      setError(getErrorMessage(err))
     }
   }
 
@@ -94,8 +96,7 @@ export default function Lines() {
       load()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      const data = err.response?.data
-      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.message || data?.Massege || 'Failed to update')
+      setError(getErrorMessage(err))
     }
   }
 

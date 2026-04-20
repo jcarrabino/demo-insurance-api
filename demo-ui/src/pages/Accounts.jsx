@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAccounts, updateAccount, deleteAccount } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useEditedFields } from '../hooks/useEditedFields'
+import { getErrorMessage } from '../utils/errorHandler'
 import Spinner from '../components/Spinner'
 
 export default function Accounts() {
@@ -16,7 +17,12 @@ export default function Accounts() {
 
   const { data: accounts, isLoading } = useQuery({
     queryKey: ['accounts'],
-    queryFn: async () => (await getAccounts()).data,
+    queryFn: async () => {
+      const res = await getAccounts()
+      // Response is now wrapped in PagedResponse<T>
+      // res.data is PagedResponse with content, page, size, totalElements, totalPages, hasNext, hasPrevious
+      return res.data?.content || res.data || []
+    },
   })
 
   const updateMutation = useMutation({
@@ -29,7 +35,7 @@ export default function Accounts() {
     },
     onError: (err) => {
       const data = err.response?.data
-      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.message || data?.Massege || 'Update failed')
+      setError(getErrorMessage(err))
     },
   })
 
@@ -42,7 +48,7 @@ export default function Accounts() {
     },
     onError: (err) => {
       const data = err.response?.data
-      setError(typeof data === 'object' ? Object.values(data).join(', ') : data?.message || 'Failed to delete account')
+      setError(getErrorMessage(err))
     },
   })
 

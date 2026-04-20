@@ -10,6 +10,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => secureStorage.getUser())
 
   const saveAuth = (jwt, userData) => {
+    // Ensure we have valid data before storing
+    if (!jwt || !userData) {
+      console.warn('Invalid auth data provided to saveAuth:', { jwt: !!jwt, userData: !!userData })
+      return
+    }
     secureStorage.setToken(jwt)
     secureStorage.setUser(userData)
     setToken(jwt)

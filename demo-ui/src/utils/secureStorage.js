@@ -9,7 +9,12 @@ export const secureStorage = {
   },
 
   getToken: () => {
-    return sessionStorage.getItem(`${STORAGE_KEY_PREFIX}token`)
+    const token = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}token`)
+    // Handle null or undefined string
+    if (!token || token === 'undefined' || token === 'null') {
+      return null
+    }
+    return token
   },
 
   setUser: (user) => {
@@ -18,7 +23,16 @@ export const secureStorage = {
 
   getUser: () => {
     const user = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}user`)
-    return user ? JSON.parse(user) : null
+    // Handle null, undefined string, or empty string
+    if (!user || user === 'undefined' || user === 'null') {
+      return null
+    }
+    try {
+      return JSON.parse(user)
+    } catch (e) {
+      console.error('Failed to parse user from storage:', e)
+      return null
+    }
   },
 
   clear: () => {

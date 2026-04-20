@@ -1,86 +1,86 @@
 package com.api.demo.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.api.demo.dto.AccountDTO;
-//import com.api.demo.entity.Account;
+
+import java.util.List;
 
 public interface AccountService {
 
 	/**
+	 * Create a new account
 	 *
 	 * @param account:
-	 *            this is provide all information about account like name email
-	 *            address password extra
-	 * @return : return type account info also this is return saved information in
-	 *         database. first came account info and this account info save in
-	 *         database and return this.
+	 *            account information to save
+	 * @return: saved account data
 	 */
 	AccountDTO addAccount(AccountDTO account);
 
 	/**
+	 * Find account by ID
 	 *
 	 * @param id:
-	 *            this para is account id in account we are first check this account
-	 *            id able in database or not if account id not able in database then
-	 *            throw a particular exception. if able then fetch all about account
-	 *            about information
-	 * @return: after fetch all info return the same info in this method.
+	 *            account ID
+	 * @return: account data
 	 */
 	AccountDTO findById(Integer id);
 
 	/**
+	 * Find account by email
 	 *
 	 * @param email:
-	 *            this para is account email in account we are first check this
-	 *            account email able in database or not if account email not able in
-	 *            database then throw a particular exception. if able then fetch all
-	 *            about account about information
-	 * @return: after fetch all info return the same info in this method.
+	 *            account email
+	 * @return: account data
 	 */
 	AccountDTO findByEmail(String email);
 
 	/**
+	 * Get all accounts (deprecated - use findAllAccounts with pagination)
 	 *
-	 * @return: in this method return all Account information in a list.
+	 * @return: list of all accounts
 	 */
+	@Deprecated(forRemoval = true)
 	List<AccountDTO> findAllAccount();
 
 	/**
-	 * @param clientID:
-	 *            this para is account id in account we are first check this account
-	 *            id able in database or not if account id not able in database then
-	 *            throw a particular exception. if able then fetch all about account
-	 *            about information
+	 * Get all accounts with pagination
+	 *
+	 * @param pageable:
+	 *            pagination parameters
+	 * @return: paginated account data
+	 */
+	Page<AccountDTO> findAllAccounts(Pageable pageable);
+
+	/**
+	 * Full update of account
+	 *
 	 * @param account:
-	 *            this is provide all information about account like name email
-	 *            address password extra after fetch about account info in database
-	 *            we are swap both account info and update in database
-	 * @return : after updating data about account we are return account data
+	 *            account data to update
+	 * @param accountId:
+	 *            account ID
+	 * @return: updated account data
 	 */
 	AccountDTO updateAccountInfo(AccountDTO account, Integer accountId);
 
 	/**
 	 * Partial update - only updates fields that are provided (non-null)
-	 * @param account: DTO with fields to update
-	 * @param accountId: account ID to update
+	 *
+	 * @param account:
+	 *            DTO with fields to update
+	 * @param accountId:
+	 *            account ID to update
 	 * @return: updated account data
 	 */
 	AccountDTO partialUpdateAccountInfo(AccountDTO account, Integer accountId);
 
 	/**
+	 * Delete account by ID
 	 *
-	 * @param idthis
-	 *            para is account id in account we are first check this account id
-	 *            able in database or not if account id not able in database then
-	 *            throw a particular exception. if able then fetch all about account
-	 *            about information
-	 *
-	 *            after fetch all info delete data in database
-	 *
-	 * @return :String type return is one type msg send like data delete
-	 *         successfully.
+	 * @param id:
+	 *            account ID
+	 * @return: success message
 	 */
 	String deleteAccount(Integer id);
-
 }

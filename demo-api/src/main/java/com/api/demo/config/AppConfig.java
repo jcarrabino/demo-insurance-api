@@ -20,8 +20,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import com.api.demo.service.AccountUserDetailsService;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -51,12 +49,10 @@ public class AppConfig {
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/swagger-ui*/**", "/v3/api-docs/**", "/actuator/**").permitAll()
-						.requestMatchers(HttpMethod.POST, "/register", "/api/v1/auth/login").permitAll()
-						.requestMatchers(HttpMethod.GET, "/welcome", "/login").permitAll()
-						.anyRequest().authenticated())
+						.requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
+						.requestMatchers(HttpMethod.GET, "/welcome", "/login").permitAll().anyRequest().authenticated())
 				.addFilterAfter(new JwtGenerator(), BasicAuthenticationFilter.class)
-				.addFilterBefore(new JwtValidator(), BasicAuthenticationFilter.class)
-				.formLogin(form -> form.disable())
+				.addFilterBefore(new JwtValidator(), BasicAuthenticationFilter.class).formLogin(form -> form.disable())
 				.httpBasic(Customizer.withDefaults());
 
 		return http.build();
@@ -67,7 +63,7 @@ public class AppConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
 		String origins = corsOrigins.trim();
-		
+
 		// Handle wildcard for all origins
 		if ("*".equals(origins)) {
 			config.setAllowedOriginPatterns(List.of("*"));
@@ -76,8 +72,9 @@ public class AppConfig {
 			config.setAllowedOrigins(Arrays.asList(origins.split(",")));
 			config.setAllowCredentials(true);
 		}
-		
-		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+		// Include PATCH method for partial updates
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setExposedHeaders(List.of("Authorization", "authorization"));
 		config.setMaxAge(3600L);
@@ -96,7 +93,7 @@ public class AppConfig {
 		ModelMapper mapper = new ModelMapper();
 		// Map Policy.expiryDate to PolicyDTO.endDate
 		mapper.typeMap(com.api.demo.entity.Policy.class, com.api.demo.dto.PolicyDTO.class)
-			.addMapping(com.api.demo.entity.Policy::getExpiryDate, com.api.demo.dto.PolicyDTO::setEndDate);
+				.addMapping(com.api.demo.entity.Policy::getExpiryDate, com.api.demo.dto.PolicyDTO::setEndDate);
 		return mapper;
 	}
 

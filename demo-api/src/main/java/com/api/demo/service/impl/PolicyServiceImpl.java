@@ -41,25 +41,21 @@ public class PolicyServiceImpl implements PolicyService {
 	public PolicyDTO createNewPolicy(Integer clientId, PolicyDTO policyDTO) {
 		// Verify account exists
 		accountService.findById(clientId);
-		
+
 		// Verify line exists
 		lineRepository.findById(policyDTO.getLineId())
 				.orElseThrow(() -> new ResourceNotFoundException("Line", "id", String.valueOf(policyDTO.getLineId())));
-		
-		Policy policy = Policy.builder()
-				.lineId(policyDTO.getLineId())
-				.accountId(clientId)
-				.premium(policyDTO.getPremium())
-				.startDate(policyDTO.getStartDate())
-				.expiryDate(policyDTO.getEndDate())
+
+		Policy policy = Policy.builder().lineId(policyDTO.getLineId()).accountId(clientId)
+				.premium(policyDTO.getPremium()).startDate(policyDTO.getStartDate()).expiryDate(policyDTO.getEndDate())
 				.build();
-		
+
 		Policy savedPolicy = policyRepository.save(policy);
 		PolicyDTO result = modelMapper.map(savedPolicy, PolicyDTO.class);
-		
+
 		// Populate account details
 		result.setAccount(accountService.findById(clientId));
-		
+
 		return result;
 	}
 
@@ -68,7 +64,7 @@ public class PolicyServiceImpl implements PolicyService {
 	public PolicyDTO getById(Integer policyId) {
 		Policy policy = policyRepository.findById(policyId)
 				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy ", "" + policyId));
-		
+
 		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
@@ -76,14 +72,14 @@ public class PolicyServiceImpl implements PolicyService {
 				throw new SecurityException("Cannot access another user's policy");
 			}
 		}
-		
+
 		PolicyDTO result = modelMapper.map(policy, PolicyDTO.class);
-		
+
 		// Populate account details
 		if (policy.getAccountId() != null) {
 			result.setAccount(accountService.findById(policy.getAccountId()));
 		}
-		
+
 		return result;
 	}
 
@@ -91,30 +87,30 @@ public class PolicyServiceImpl implements PolicyService {
 	public PolicyDTO updatePolicy(PolicyDTO policyDTO, Integer policyId) {
 		Policy existingPolicy = policyRepository.findById(policyId)
 				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy ", "" + policyId));
-		
+
 		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (existingPolicy.getAccountId() == null 
+			if (existingPolicy.getAccountId() == null
 					|| !existingPolicy.getAccountId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot update another user's policy");
 			}
 		}
-		
+
 		// Update lineId if provided
 		if (policyDTO.getLineId() != null) {
-			lineRepository.findById(policyDTO.getLineId())
-					.orElseThrow(() -> new ResourceNotFoundException("Line", "id", String.valueOf(policyDTO.getLineId())));
+			lineRepository.findById(policyDTO.getLineId()).orElseThrow(
+					() -> new ResourceNotFoundException("Line", "id", String.valueOf(policyDTO.getLineId())));
 			existingPolicy.setLineId(policyDTO.getLineId());
 		}
-		
+
 		// Update accountId if provided (admin only)
 		if (policyDTO.getAccountId() != null && authService.isAdmin()) {
 			// Verify account exists
 			accountService.findById(policyDTO.getAccountId());
 			existingPolicy.setAccountId(policyDTO.getAccountId());
 		}
-		
+
 		// Update other fields
 		if (policyDTO.getPremium() != null) {
 			existingPolicy.setPremium(policyDTO.getPremium());
@@ -125,15 +121,15 @@ public class PolicyServiceImpl implements PolicyService {
 		if (policyDTO.getEndDate() != null) {
 			existingPolicy.setExpiryDate(policyDTO.getEndDate());
 		}
-		
+
 		Policy updatedPolicy = policyRepository.save(existingPolicy);
 		PolicyDTO result = modelMapper.map(updatedPolicy, PolicyDTO.class);
-		
+
 		// Populate account details
 		if (updatedPolicy.getAccountId() != null) {
 			result.setAccount(accountService.findById(updatedPolicy.getAccountId()));
 		}
-		
+
 		return result;
 	}
 
@@ -141,7 +137,7 @@ public class PolicyServiceImpl implements PolicyService {
 	public String deletePolicy(Integer policyId) {
 		Policy policy = policyRepository.findById(policyId)
 				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy ", "" + policyId));
-		
+
 		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
@@ -149,7 +145,7 @@ public class PolicyServiceImpl implements PolicyService {
 				throw new SecurityException("Cannot delete another user's policy");
 			}
 		}
-		
+
 		policyRepository.delete(policy);
 		return "Insurance policy deleted successfully...";
 	}
@@ -157,7 +153,7 @@ public class PolicyServiceImpl implements PolicyService {
 	@Override
 	public List<PolicyDTO> getAllPolicy() {
 		List<Policy> policies;
-		
+
 		// If admin, return all policies
 		// If regular user, return only their policies
 		if (authService.isAdmin()) {
@@ -165,11 +161,11 @@ public class PolicyServiceImpl implements PolicyService {
 		} else {
 			// Get current user's account
 			Account currentAccount = authService.getCurrentAccount();
-			policies = policyRepository.findAll().stream()
-					.filter(policy -> policy.getAccountId() != null && policy.getAccountId().equals(currentAccount.getId()))
+			policies = policyRepository.findAll().stream().filter(
+					policy -> policy.getAccountId() != null && policy.getAccountId().equals(currentAccount.getId()))
 					.collect(Collectors.toList());
 		}
-		
+
 		// Map to DTOs and populate account details
 		return policies.stream().map(policy -> {
 			PolicyDTO dto = modelMapper.map(policy, PolicyDTO.class);
@@ -184,10 +180,10 @@ public class PolicyServiceImpl implements PolicyService {
 	public PolicyDTO assignPolicyWithAccount(Integer accountId, Integer policyId) {
 		// Verify account exists
 		accountService.findById(accountId);
-		
+
 		PolicyDTO policy = getById(policyId);
 		policy.setAccountId(accountId);
-		
+
 		return updatePolicy(policy, policyId);
 	}
 

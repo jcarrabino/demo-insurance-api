@@ -8,6 +8,7 @@ jest.mock('axios', () => {
     get: jest.fn(),
     post: jest.fn(),
     put: jest.fn(),
+    patch: jest.fn(),
     delete: jest.fn(),
   }
   
@@ -35,29 +36,30 @@ describe('API Client', () => {
 
       await client.register(mockData)
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/register', mockData)
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v1/auth/register', mockData)
     })
 
-    it('should call login endpoint with Basic auth', async () => {
+    it('should call login endpoint', async () => {
       const email = 'test@test.com'
       const password = 'Password1!'
-      mockAxiosInstance.get.mockResolvedValue({ data: {}, headers: {} })
+      mockAxiosInstance.post.mockResolvedValue({ 
+        data: { account: { id: 1, email } },
+        headers: { authorization: 'Bearer token' }
+      })
 
       await client.login(email, password)
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/login', {
-        headers: { Authorization: expect.stringContaining('Basic ') },
-      })
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v1/auth/login', { email, password })
     })
   })
 
   describe('Account endpoints', () => {
-    it('should get all accounts', async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: [] })
+    it('should get all accounts with pagination', async () => {
+      mockAxiosInstance.get.mockResolvedValue({ data: { content: [] } })
 
-      await client.getAccounts()
+      await client.getAccounts(0, 20)
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/accounts/')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/accounts?page=0&size=20')
     })
 
     it('should get account by id', async () => {
@@ -65,7 +67,7 @@ describe('API Client', () => {
 
       await client.getAccount(1)
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/accounts/1')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/accounts/1')
     })
 
     it('should update account', async () => {
@@ -74,7 +76,7 @@ describe('API Client', () => {
 
       await client.updateAccount(1, mockData)
 
-      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/api/accounts/1', mockData)
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/api/v1/accounts/1', mockData)
     })
 
     it('should delete account', async () => {
@@ -82,7 +84,7 @@ describe('API Client', () => {
 
       await client.deleteAccount(1)
 
-      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/api/accounts/1')
+      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/api/v1/accounts/1')
     })
   })
 
@@ -92,7 +94,7 @@ describe('API Client', () => {
 
       await client.getPolicies()
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/policies/')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/policies')
     })
 
     it('should create policy', async () => {
@@ -101,7 +103,16 @@ describe('API Client', () => {
 
       await client.createPolicy(1, mockData)
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/policies/1', mockData)
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v1/policies/1', mockData)
+    })
+
+    it('should update policy', async () => {
+      const mockData = { premium: 500 }
+      mockAxiosInstance.put.mockResolvedValue({ data: mockData })
+
+      await client.updatePolicy(1, mockData)
+
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/api/v1/policies/1', mockData)
     })
 
     it('should delete policy', async () => {
@@ -109,17 +120,17 @@ describe('API Client', () => {
 
       await client.deletePolicy(1)
 
-      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/api/policies/1')
+      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/api/v1/policies/1')
     })
   })
 
   describe('Claim endpoints', () => {
-    it('should get all claims', async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: [] })
+    it('should get all claims with pagination', async () => {
+      mockAxiosInstance.get.mockResolvedValue({ data: { content: [] } })
 
-      await client.getClaims()
+      await client.getClaims(0, 20)
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/claims/')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/claims?page=0&size=20')
     })
 
     it('should create claim', async () => {
@@ -128,7 +139,25 @@ describe('API Client', () => {
 
       await client.createClaim(1, mockData)
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/claims/1', mockData)
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v1/claims/1', mockData)
+    })
+
+    it('should update claim', async () => {
+      const mockData = { description: 'Updated' }
+      mockAxiosInstance.put.mockResolvedValue({ data: mockData })
+
+      await client.updateClaim(1, mockData)
+
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/api/v1/claims/1', mockData)
+    })
+
+    it('should partially update claim', async () => {
+      const mockData = { claimStatus: 'APPROVED' }
+      mockAxiosInstance.patch.mockResolvedValue({ data: mockData })
+
+      await client.partialUpdateClaim(1, mockData)
+
+      expect(mockAxiosInstance.patch).toHaveBeenCalledWith('/api/v1/claims/1', mockData)
     })
 
     it('should delete claim', async () => {
@@ -136,7 +165,7 @@ describe('API Client', () => {
 
       await client.deleteClaim(1)
 
-      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/api/claims/1')
+      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/api/v1/claims/1')
     })
   })
 
@@ -146,7 +175,7 @@ describe('API Client', () => {
 
       await client.getLines()
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/lines/')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/lines')
     })
 
     it('should create line', async () => {
@@ -155,7 +184,16 @@ describe('API Client', () => {
 
       await client.createLine(mockData)
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/lines/', mockData)
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v1/lines', mockData)
+    })
+
+    it('should update line', async () => {
+      const mockData = { name: 'Auto Insurance' }
+      mockAxiosInstance.put.mockResolvedValue({ data: mockData })
+
+      await client.updateLine(1, mockData)
+
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/api/v1/lines/1', mockData)
     })
 
     it('should delete line', async () => {
@@ -163,7 +201,7 @@ describe('API Client', () => {
 
       await client.deleteLine(1)
 
-      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/api/lines/1')
+      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/api/v1/lines/1')
     })
   })
 
@@ -174,7 +212,7 @@ describe('API Client', () => {
 
       await client.calculateCoverage(1, 2)
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/coverage/calculate/1/2')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/coverage/calculate/1/2')
     })
   })
 })

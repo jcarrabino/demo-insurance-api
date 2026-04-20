@@ -53,7 +53,7 @@ public class LineServiceImpl implements LineService {
 	public LineDTO partialUpdate(Integer id, LineDTO lineDTO) {
 		Line existingLine = lineRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Line", "id", String.valueOf(id)));
-		
+
 		// Only update fields that are provided (non-null)
 		if (lineDTO.getName() != null) {
 			existingLine.setName(lineDTO.getName());
@@ -67,7 +67,7 @@ public class LineServiceImpl implements LineService {
 		if (lineDTO.getMinCoverage() != null) {
 			existingLine.setMinCoverage(lineDTO.getMinCoverage());
 		}
-		
+
 		return modelMapper.map(lineRepository.save(existingLine), LineDTO.class);
 	}
 

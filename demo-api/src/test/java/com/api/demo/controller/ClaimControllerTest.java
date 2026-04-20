@@ -4,7 +4,9 @@ import com.api.demo.dto.ClaimDTO;
 import com.api.demo.dto.PolicyDTO;
 import com.api.demo.entity.Claim;
 import com.api.demo.exception.ResourceNotFoundException;
+import com.api.demo.model.ApiResponse;
 import com.api.demo.model.ClaimStatus;
+import com.api.demo.model.PagedResponse;
 import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.ClaimService;
 import com.api.demo.service.PolicyService;
@@ -62,75 +64,74 @@ class ClaimControllerTest {
 	@Test
     void createClaim_returns201() {
         when(claimService.createNewClaim(1, claimDTO)).thenReturn(claim);
-        
+
         ClaimDTO responseDTO = new ClaimDTO();
         responseDTO.setId(1);
         responseDTO.setDescription("Accident claim");
         responseDTO.setClaimDate(LocalDate.now());
         responseDTO.setClaimStatus(ClaimStatus.SUBMITTED);
-        
+
         when(modelMapper.map(claim, ClaimDTO.class)).thenReturn(responseDTO);
-        
+
         PolicyDTO policyDTO = new PolicyDTO();
         policyDTO.setId(1);
         when(policyService.getById(claim.getPolicyId())).thenReturn(policyDTO);
 
-        ResponseEntity<ClaimDTO> response = claimController.createClaim(1, claimDTO);
+        ResponseEntity<ApiResponse<ClaimDTO>> response = claimController.createClaim(1, claimDTO);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getId()).isEqualTo(1);
+        assertThat(response.getBody().getData()).isNotNull();
+        assertThat(response.getBody().getData().getId()).isEqualTo(1);
     }
 
 	@Test
     void getClaimById_returns200() {
         when(claimService.getClaimById(1)).thenReturn(claim);
 
-        ResponseEntity<ClaimDTO> response = claimController.getClaimById(1);
+        ResponseEntity<ApiResponse<ClaimDTO>> response = claimController.getClaimById(1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.SUBMITTED);
+        assertThat(response.getBody().getData().getClaimStatus()).isEqualTo(ClaimStatus.SUBMITTED);
     }
 
 	@Test
-    void getClaimById_throws_whenNotFound() {
-        // Don't stub modelMapper for this test since it won't be called
-        reset(modelMapper);
-        when(claimService.getClaimById(99)).thenThrow(new ResourceNotFoundException("Claim", "Claim id", "99"));
+	void getClaimById_throws_whenNotFound() {
+		// Don't stub modelMapper for this test since it won't be called
+		reset(modelMapper);
+		when(claimService.getClaimById(99)).thenThrow(new ResourceNotFoundException("Claim", "Claim id", "99"));
 
-        assertThatThrownBy(() -> claimController.getClaimById(99))
-                .isInstanceOf(ResourceNotFoundException.class);
-    }
+		assertThatThrownBy(() -> claimController.getClaimById(99)).isInstanceOf(ResourceNotFoundException.class);
+	}
 
 	@Test
     void getAllClaims_returns200() {
         when(claimService.getAllClaim()).thenReturn(List.of(claim));
 
-        ResponseEntity<List<ClaimDTO>> response = claimController.getAllClaims();
+        ResponseEntity<ApiResponse<PagedResponse<ClaimDTO>>> response = claimController.getAllClaims(0, 20);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().getData().getContent()).hasSize(1);
     }
 
 	@Test
     void updateClaim_returns200() {
-        when(claimService.updateClaim(claim, 1)).thenReturn(claim);
+        when(claimService.partialUpdateClaim(claimDTO, 1)).thenReturn(claim);
 
-        ResponseEntity<ClaimDTO> response = claimController.updateClaim(claim, 1);
+        ResponseEntity<ApiResponse<ClaimDTO>> response = claimController.updateClaim(claimDTO, 1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getDescription()).isEqualTo("Accident claim");
+        assertThat(response.getBody().getData().getDescription()).isEqualTo("Accident claim");
     }
 
 	@Test
-    void deleteClaim_returns200() {
-        // Don't stub modelMapper for this test since it won't be called
-        reset(modelMapper);
-        when(claimService.deleteClaim(1)).thenReturn("claim info delete successfully...");
+	void deleteClaim_returns200() {
+		// Don't stub modelMapper for this test since it won't be called
+		reset(modelMapper);
+		when(claimService.deleteClaim(1)).thenReturn("claim info delete successfully...");
 
-        ResponseEntity<String> response = claimController.deleteClaimById(1);
+		ResponseEntity<ApiResponse<String>> response = claimController.deleteClaimById(1);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("delete");
-    }
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody().getData()).contains("delete");
+	}
 }

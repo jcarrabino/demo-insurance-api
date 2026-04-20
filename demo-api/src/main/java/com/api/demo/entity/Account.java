@@ -19,6 +19,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 @Getter
@@ -27,7 +28,8 @@ import jakarta.persistence.Table;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "account")
+@Table(name = "account", indexes = {@Index(name = "idx_email", columnList = "email", unique = true),
+		@Index(name = "idx_admin", columnList = "admin")})
 public class Account {
 
 	@Id

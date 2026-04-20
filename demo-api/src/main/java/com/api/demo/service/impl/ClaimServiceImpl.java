@@ -41,7 +41,7 @@ public class ClaimServiceImpl implements ClaimService {
 	public Claim createNewClaim(Integer policyId, ClaimDTO claimDTO) {
 		// Verify policy exists and get policy details
 		PolicyDTO policy = PolicyService.getById(policyId);
-		
+
 		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
@@ -49,15 +49,11 @@ public class ClaimServiceImpl implements ClaimService {
 				throw new SecurityException("Cannot create claim for another user's policy");
 			}
 		}
-		
+
 		// Create claim with policyId
-		Claim claim = Claim.builder()
-				.description(claimDTO.getDescription())
-				.claimDate(claimDTO.getClaimDate())
-				.claimStatus(claimDTO.getClaimStatus())
-				.policyId(policyId)
-				.build();
-		
+		Claim claim = Claim.builder().description(claimDTO.getDescription()).claimDate(claimDTO.getClaimDate())
+				.claimStatus(claimDTO.getClaimStatus()).policyId(policyId).build();
+
 		return claimRepository.save(claim);
 	}
 
@@ -65,7 +61,7 @@ public class ClaimServiceImpl implements ClaimService {
 	public Claim getClaimById(Integer claimId) {
 		Claim claim = claimRepository.findById(claimId)
 				.orElseThrow(() -> new ResourceNotFoundException("Claim ", "Claim id", "" + claimId));
-		
+
 		// If not admin, verify the claim belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
@@ -75,7 +71,7 @@ public class ClaimServiceImpl implements ClaimService {
 				throw new SecurityException("Cannot access another user's claim");
 			}
 		}
-		
+
 		return claim;
 	}
 
@@ -83,7 +79,7 @@ public class ClaimServiceImpl implements ClaimService {
 	public Claim updateClaim(Claim claim, Integer claimId) {
 		Claim existingClaim = claimRepository.findById(claimId)
 				.orElseThrow(() -> new ResourceNotFoundException("Claim ", "Claim id", "" + claimId));
-		
+
 		// If not admin, verify the claim belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
@@ -93,12 +89,12 @@ public class ClaimServiceImpl implements ClaimService {
 				throw new SecurityException("Cannot update another user's claim");
 			}
 		}
-		
+
 		// Update fields
 		existingClaim.setDescription(claim.getDescription());
 		existingClaim.setClaimStatus(claim.getClaimStatus());
 		// Keep original claim date
-		
+
 		return claimRepository.save(existingClaim);
 	}
 
@@ -106,7 +102,7 @@ public class ClaimServiceImpl implements ClaimService {
 	public Claim partialUpdateClaim(ClaimDTO claimDTO, Integer claimId) {
 		Claim existingClaim = claimRepository.findById(claimId)
 				.orElseThrow(() -> new ResourceNotFoundException("Claim ", "Claim id", "" + claimId));
-		
+
 		// If not admin, verify the claim belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
@@ -116,7 +112,7 @@ public class ClaimServiceImpl implements ClaimService {
 				throw new SecurityException("Cannot update another user's claim");
 			}
 		}
-		
+
 		// Only update fields that are provided (non-null)
 		if (claimDTO.getDescription() != null) {
 			existingClaim.setDescription(claimDTO.getDescription());
@@ -125,7 +121,7 @@ public class ClaimServiceImpl implements ClaimService {
 			existingClaim.setClaimStatus(claimDTO.getClaimStatus());
 		}
 		// claimDate and policyId cannot be changed
-		
+
 		return claimRepository.save(existingClaim);
 	}
 
@@ -133,7 +129,7 @@ public class ClaimServiceImpl implements ClaimService {
 	public String deleteClaim(Integer claimId) {
 		Claim claim = claimRepository.findById(claimId)
 				.orElseThrow(() -> new ResourceNotFoundException("Claim ", "Claim id", "" + claimId));
-		
+
 		// If not admin, verify the claim belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
@@ -143,7 +139,7 @@ public class ClaimServiceImpl implements ClaimService {
 				throw new SecurityException("Cannot delete another user's claim");
 			}
 		}
-		
+
 		claimRepository.delete(claim);
 		return "claim info delete successfully...";
 	}
@@ -158,16 +154,14 @@ public class ClaimServiceImpl implements ClaimService {
 			// Get current user's account
 			Account currentAccount = authService.getCurrentAccount();
 			// Filter claims by checking each policy's ownership
-			return claimRepository.findAll().stream()
-					.filter(claim -> {
-						try {
-							PolicyDTO policy = PolicyService.getById(claim.getPolicyId());
-							return policy.getAccountId() != null && policy.getAccountId().equals(currentAccount.getId());
-						} catch (Exception e) {
-							return false;
-						}
-					})
-					.collect(Collectors.toList());
+			return claimRepository.findAll().stream().filter(claim -> {
+				try {
+					PolicyDTO policy = PolicyService.getById(claim.getPolicyId());
+					return policy.getAccountId() != null && policy.getAccountId().equals(currentAccount.getId());
+				} catch (Exception e) {
+					return false;
+				}
+			}).collect(Collectors.toList());
 		}
 	}
 
