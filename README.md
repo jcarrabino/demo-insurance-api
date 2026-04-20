@@ -9,23 +9,25 @@ A modern, full-stack insurance management application demonstrating enterprise-g
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
 
+<a name="top"></a>
+
 ---
 
 ## 📖 Table of Contents
 
-- [🏗️ Architecture Overview](#🏗️-architecture-overview)
-- [🛠️ Technology Stack](#🛠️-technology-stack)
+- [🏗️ Architecture Overview](#-architecture-overview)
+- [🛠️ Technology Stack](#-technology-stack)
 - [🚀 Quick Start](#-quick-start)
 - [✨ Best Practices Implemented](#-best-practices-implemented)
 - [📋 Project Structure](#-project-structure)
 - [📚 API Endpoints](#-api-endpoints)
 - [🔐 Authentication & Authorization](#-authentication--authorization)
-- [🗄️ Database Schema](#🗄️-database-schema)
+- [🗄️ Database Schema](#-database-schema)
 - [🧪 Testing](#-testing)
 - [📊 Performance Optimizations](#-performance-optimizations)
 - [🔍 Monitoring & Observability](#-monitoring--observability)
 - [📝 API Response Format](#-api-response-format)
-- [🛡️ Security Considerations](#🛡️-security-considerations)
+- [🛡️ Security Considerations](#-security-considerations)
 - [📦 Deployment](#-deployment)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
@@ -64,6 +66,8 @@ A modern, full-stack insurance management application demonstrating enterprise-g
 
 ---
 
+[⬆ Back to Top](#top)
+
 ## 🛠️ Technology Stack
 
 ### Backend
@@ -99,6 +103,8 @@ A modern, full-stack insurance management application demonstrating enterprise-g
 | **Node.js** | 18+ | Runtime |
 
 ---
+
+[⬆ Back to Top](#top)
 
 ## 🚀 Quick Start
 
@@ -181,6 +187,8 @@ This script will:
 - Access application at `http://localhost:3000`
 
 ---
+
+[⬆ Back to Top](#top)
 
 ## ✨ Best Practices Implemented
 
@@ -290,6 +298,8 @@ This script will:
 
 ---
 
+[⬆ Back to Top](#top)
+
 ## 📋 Project Structure
 
 ### Backend
@@ -395,6 +405,10 @@ demo-ui/
 └── eslint.config.js
 ```
 
+---
+
+[⬆ Back to Top](#top)
+
 ## 📚 API Endpoints
 
 ### Authentication
@@ -433,6 +447,8 @@ demo-ui/
 
 ---
 
+[⬆ Back to Top](#top)
+
 ## 🔐 Authentication & Authorization
 
 ### JWT Token Flow
@@ -454,6 +470,8 @@ demo-ui/
 ```
 
 ---
+
+[⬆ Back to Top](#top)
 
 ## 🗄️ Database Schema
 
@@ -478,6 +496,8 @@ demo-ui/
 - Line: name
 
 ---
+
+[⬆ Back to Top](#top)
 
 ## 🧪 Testing
 
@@ -507,6 +527,8 @@ npm run test:watch
 
 ---
 
+[⬆ Back to Top](#top)
+
 ## 📊 Performance Optimizations
 
 ### Backend
@@ -526,6 +548,8 @@ npm run test:watch
 
 ---
 
+[⬆ Back to Top](#top)
+
 ## 🔍 Monitoring & Observability
 
 ### Health Checks
@@ -544,6 +568,8 @@ GET /actuator/metrics
 - Useful for distributed tracing
 
 ---
+
+[⬆ Back to Top](#top)
 
 ## 📝 API Response Format
 
@@ -588,6 +614,8 @@ GET /actuator/metrics
 
 ---
 
+[⬆ Back to Top](#top)
+
 ## 🛡️ Security Considerations
 
 - **HTTPS**: Use HTTPS in production
@@ -600,6 +628,8 @@ GET /actuator/metrics
 - **Rate Limiting**: Prevent brute force attacks
 
 ---
+
+[⬆ Back to Top](#top)
 
 ## 📦 Deployment
 
@@ -629,6 +659,8 @@ docker-compose up
 
 ---
 
+[⬆ Back to Top](#top)
+
 ## 🤝 Contributing
 
 1. Create feature branch: `git checkout -b feature/name`
@@ -644,11 +676,15 @@ docker-compose up
 
 ---
 
+[⬆ Back to Top](#top)
+
 ## 📄 License
 
 This project is licensed under the MIT License - see LICENSE file for details.
 
 ---
+
+[⬆ Back to Top](#top)
 
 ## 📞 Support
 
@@ -659,6 +695,8 @@ For issues, questions, or suggestions:
 4. Create an issue with detailed description
 
 ---
+
+[⬆ Back to Top](#top)
 
 ## 🎯 Key Features
 
