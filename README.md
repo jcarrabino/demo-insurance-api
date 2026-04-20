@@ -13,19 +13,19 @@ A modern, full-stack insurance management application demonstrating enterprise-g
 
 ## 📖 Table of Contents
 
-- [🏗️ Architecture Overview](#-architecture-overview)
-- [🛠️ Technology Stack](#-technology-stack)
+- [🏗️ Architecture Overview](#🏗️-architecture-overview)
+- [🛠️ Technology Stack](#🛠️-technology-stack)
 - [🚀 Quick Start](#-quick-start)
 - [✨ Best Practices Implemented](#-best-practices-implemented)
 - [📋 Project Structure](#-project-structure)
 - [📚 API Endpoints](#-api-endpoints)
 - [🔐 Authentication & Authorization](#-authentication--authorization)
-- [🗄️ Database Schema](#-database-schema)
+- [🗄️ Database Schema](#🗄️-database-schema)
 - [🧪 Testing](#-testing)
 - [📊 Performance Optimizations](#-performance-optimizations)
 - [🔍 Monitoring & Observability](#-monitoring--observability)
 - [📝 API Response Format](#-api-response-format)
-- [🛡️ Security Considerations](#-security-considerations)
+- [🛡️ Security Considerations](#🛡️-security-considerations)
 - [📦 Deployment](#-deployment)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
