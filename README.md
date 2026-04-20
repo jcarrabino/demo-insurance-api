@@ -100,65 +100,85 @@ A modern, full-stack insurance management application demonstrating enterprise-g
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
+- Docker and Docker Compose installed
+
+### All-in-One Setup (Recommended)
+```bash
+./start-dev.sh
+```
+
+This script will:
+- Start MySQL database at `jdbc:mysql://localhost:3306/insurance_db`
+- Start backend API at `http://localhost:8080`
+- Start frontend development server at `http://localhost:5173`
+- Automatically open application in browser
+
+**Access Points:**
+- 🌐 Frontend Application: `http://localhost:5173`
+- 🔌 Backend API: `http://localhost:8080`
+- 📚 API Documentation (Swagger): `http://localhost:8080/swagger-ui.html`
+- 🏥 API Health Check: `http://localhost:8080/actuator/health`
+- 📊 API Metrics: `http://localhost:8080/actuator/metrics`
+- 🗄️ Database: `localhost:3306` (MySQL)
+
+### Running Backend Only
+
+**Prerequisites:**
 - Java 21+
-- Node.js 18+
-- MySQL 8.0+
 - Maven 3.8+
-- npm or yarn
+- MySQL 8.0+ running on `localhost:3306`
 
-### Backend Setup
-
-1. **Clone and navigate**
+**Steps:**
 ```bash
-git clone <repository>
 cd demo-api
-```
 
-2. **Configure database**
-```bash
-# Update application.properties
-spring.datasource.url=jdbc:mysql://localhost:3306/insurance_db
-spring.datasource.username=root
-spring.datasource.password=your_password
-```
-
-3. **Build and run**
-```bash
+# Build the project
 mvn clean install
+
+# Run the application
 mvn spring-boot:run
 ```
 
-4. **Access API documentation**
-```
-http://localhost:8080/swagger-ui.html
-```
+**Backend Access:**
+- API Base URL: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Health Check: `http://localhost:8080/actuator/health`
 
-### Frontend Setup
+### Running Frontend Only
 
-1. **Navigate and install**
+**Prerequisites:**
+- Node.js 18+
+- npm or yarn
+- Backend API running at `http://localhost:8080`
+
+**Steps:**
 ```bash
 cd demo-ui
+
+# Install dependencies
 npm install
-```
 
-2. **Configure environment**
-```bash
-cp .env.example .env.development
-# Update VITE_API_BASE_URL if needed
-```
-
-3. **Start development server**
-```bash
+# Start development server
 npm run dev
 ```
 
-4. **Access application**
+**Frontend Access:**
+- Application URL: `http://localhost:5173`
+- Backend API: `http://localhost:8080` (configured in `.env.development`)
+
+### Production Deployment
+```bash
+./start-prod.sh
 ```
-http://localhost:5173
-```
+
+This script will:
+- Build optimized frontend bundle
+- Build backend JAR
+- Start both services with production configuration
+- Access application at `http://localhost:3000`
 
 ---
 
