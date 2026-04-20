@@ -1,4 +1,4 @@
-# Insurance Management System
+# Demo Insurance Management App
 
 A modern, full-stack insurance management application demonstrating enterprise-grade architecture, best practices, and cutting-edge technologies. Built with Spring Boot 4.0 and React 18, this system showcases professional development patterns for scalable, maintainable applications.
 
