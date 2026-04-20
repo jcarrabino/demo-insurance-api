@@ -2,32 +2,62 @@
 
 A modern, full-stack insurance management application demonstrating enterprise-grade architecture, best practices, and cutting-edge technologies. Built with Spring Boot 4.0 and React 18, this system showcases professional development patterns for scalable, maintainable applications.
 
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.0-646CFF.svg)](https://vitejs.dev/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)](https://www.mysql.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
+
+---
+
+## 📖 Table of Contents
+
+- [🏗️ Architecture Overview](#-architecture-overview)
+- [🛠️ Technology Stack](#-technology-stack)
+- [🚀 Quick Start](#-quick-start)
+- [✨ Best Practices Implemented](#-best-practices-implemented)
+- [📋 Project Structure](#-project-structure)
+- [📚 API Endpoints](#-api-endpoints)
+- [🔐 Authentication & Authorization](#-authentication--authorization)
+- [🗄️ Database Schema](#-database-schema)
+- [🧪 Testing](#-testing)
+- [📊 Performance Optimizations](#-performance-optimizations)
+- [🔍 Monitoring & Observability](#-monitoring--observability)
+- [📝 API Response Format](#-api-response-format)
+- [🛡️ Security Considerations](#-security-considerations)
+- [📦 Deployment](#-deployment)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [📞 Support](#-support)
+- [🎯 Key Features](#-key-features)
+
 ---
 
 ## 🏗️ Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (React 18)                       │
+│                    Frontend (React 18)                      │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │  Pages │ Components │ Hooks │ Context │ API Client  │   │
+│  │  Pages │ Components │ Hooks │ Context │ API Client   │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                             ↕ (Axios)
 ┌─────────────────────────────────────────────────────────────┐
-│                  Backend (Spring Boot 4.0)                   │
+│                  Backend (Spring Boot 4.0)                  │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ Controllers │ Services │ Repositories │ Entities    │   │
+│  │ Controllers │ Services │ Repositories │ Entities     │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ Security │ Validation │ Caching │ Rate Limiting     │   │
+│  │ Security │ Validation │ Caching │ Rate Limiting      │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                             ↕ (JPA)
 ┌─────────────────────────────────────────────────────────────┐
-│                    MySQL Database                            │
+│                    MySQL Database                           │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ Accounts │ Policies │ Claims │ Lines │ Addresses    │   │
+│  │ Accounts │ Policies │ Claims │ Lines │ Addresses     │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -67,6 +97,68 @@ A modern, full-stack insurance management application demonstrating enterprise-g
 | **ESLint** | 9.15.0 | Code Linting |
 | **Jest** | 29.7.0 | Testing Framework |
 | **Node.js** | 18+ | Runtime |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Java 21+
+- Node.js 18+
+- MySQL 8.0+
+- Maven 3.8+
+- npm or yarn
+
+### Backend Setup
+
+1. **Clone and navigate**
+```bash
+git clone <repository>
+cd demo-api
+```
+
+2. **Configure database**
+```bash
+# Update application.properties
+spring.datasource.url=jdbc:mysql://localhost:3306/insurance_db
+spring.datasource.username=root
+spring.datasource.password=your_password
+```
+
+3. **Build and run**
+```bash
+mvn clean install
+mvn spring-boot:run
+```
+
+4. **Access API documentation**
+```
+http://localhost:8080/swagger-ui.html
+```
+
+### Frontend Setup
+
+1. **Navigate and install**
+```bash
+cd demo-ui
+npm install
+```
+
+2. **Configure environment**
+```bash
+cp .env.example .env.development
+# Update VITE_API_BASE_URL if needed
+```
+
+3. **Start development server**
+```bash
+npm run dev
+```
+
+4. **Access application**
+```
+http://localhost:5173
+```
 
 ---
 
@@ -282,70 +374,6 @@ demo-ui/
 ├── jest.config.js
 └── eslint.config.js
 ```
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Java 21+
-- Node.js 18+
-- MySQL 8.0+
-- Maven 3.8+
-- npm or yarn
-
-### Backend Setup
-
-1. **Clone and navigate**
-```bash
-git clone <repository>
-cd demo-api
-```
-
-2. **Configure database**
-```bash
-# Update application.properties
-spring.datasource.url=jdbc:mysql://localhost:3306/insurance_db
-spring.datasource.username=root
-spring.datasource.password=your_password
-```
-
-3. **Build and run**
-```bash
-mvn clean install
-mvn spring-boot:run
-```
-
-4. **Access API documentation**
-```
-http://localhost:8080/swagger-ui.html
-```
-
-### Frontend Setup
-
-1. **Navigate and install**
-```bash
-cd demo-ui
-npm install
-```
-
-2. **Configure environment**
-```bash
-cp .env.example .env.development
-# Update VITE_API_BASE_URL if needed
-```
-
-3. **Start development server**
-```bash
-npm run dev
-```
-
-4. **Access application**
-```
-http://localhost:5173
-```
-
----
 
 ## 📚 API Endpoints
 
