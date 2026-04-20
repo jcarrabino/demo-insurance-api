@@ -52,7 +52,7 @@ public class AppConfig {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/swagger-ui*/**", "/v3/api-docs/**", "/actuator/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/register", "/api/v1/auth/login").permitAll()
-						.requestMatchers(HttpMethod.GET, "/welcome").permitAll()
+						.requestMatchers(HttpMethod.GET, "/welcome", "/login").permitAll()
 						.anyRequest().authenticated())
 				.addFilterAfter(new JwtGenerator(), BasicAuthenticationFilter.class)
 				.addFilterBefore(new JwtValidator(), BasicAuthenticationFilter.class)
@@ -66,11 +66,20 @@ public class AppConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(Arrays.asList(corsOrigins.split(",")));
+		String origins = corsOrigins.trim();
+		
+		// Handle wildcard for all origins
+		if ("*".equals(origins)) {
+			config.setAllowedOriginPatterns(List.of("*"));
+			config.setAllowCredentials(false);
+		} else {
+			config.setAllowedOrigins(Arrays.asList(origins.split(",")));
+			config.setAllowCredentials(true);
+		}
+		
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setExposedHeaders(List.of("Authorization", "authorization"));
-		config.setAllowCredentials(true);
 		config.setMaxAge(3600L);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", config);

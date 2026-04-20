@@ -29,15 +29,18 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token is expired or invalid - clear auth data and redirect to home
-      console.warn('Unauthorized request - token expired or invalid, redirecting to home')
-      secureStorage.clear()
-      
-      // Dispatch custom event for AuthContext to handle
-      window.dispatchEvent(new Event('auth:logout'))
-      
-      // Redirect to home page
-      window.location.href = '/'
+      // Don't redirect if already on login page
+      if (window.location.pathname !== '/login') {
+        // Token is expired or invalid - clear auth data and redirect to login
+        console.warn('Unauthorized request - token expired or invalid, redirecting to login')
+        secureStorage.clear()
+        
+        // Dispatch custom event for AuthContext to handle
+        window.dispatchEvent(new Event('auth:logout'))
+        
+        // Redirect to login page
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }

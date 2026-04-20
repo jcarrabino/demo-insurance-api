@@ -51,7 +51,7 @@ public class PublicController {
 	@GetMapping("/login")
 	public ResponseEntity<AccountDTO> getLoggedInClientDetailsHandler(Authentication auth) {
 		if (auth == null) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+			return ResponseEntity.status(HttpStatus.OK).build();
 		}
 		//AccountDTO account = accountService.findByEmail(auth.getName());
 		return new ResponseEntity<AccountDTO>(HttpStatus.OK);

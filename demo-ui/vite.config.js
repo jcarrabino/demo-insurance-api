@@ -37,11 +37,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      '/login': {
-        target: process.env.VITE_API_URL || 'http://localhost:8080',
-        changeOrigin: true,
-        secure: false,
-      },
       '/welcome': {
         target: process.env.VITE_API_URL || 'http://localhost:8080',
         changeOrigin: true,

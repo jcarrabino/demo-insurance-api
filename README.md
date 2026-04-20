@@ -1,6 +1,6 @@
-# Demo Insurance App System
+# Insurance Management System
 
-A modern, full-stack Demo Insurance App application demonstrating enterprise-grade architecture, security best practices, and cutting-edge technologies. Built with Spring Boot 4, React 18, and MySQL 8, featuring JWT authentication, role-based access control, and hot module replacement for optimal developer experience.
+A modern, full-stack insurance management application demonstrating enterprise-grade architecture, security best practices, and cutting-edge technologies. Built with Spring Boot 4, React 18, and MySQL 8, featuring JWT authentication, role-based access control, smart form field tracking, and hot module replacement for optimal developer experience.
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -15,17 +15,8 @@ A modern, full-stack Demo Insurance App application demonstrating enterprise-gra
 
 This application has been enhanced with enterprise-grade best practices:
 
-### Backend Enhancements
-- ✅ Added Spring Boot Actuator for monitoring (`/actuator/health`, `/actuator/metrics`)
-- ✅ Implemented Caffeine caching strategy for improved performance
-- ✅ Added comprehensive OpenAPI/Swagger documentation annotations
-- ✅ Implemented request/response logging filter
-- ✅ Added rate limiting with Bucket4j (100 requests/minute per IP)
-- ✅ Environment-based CORS configuration
-- ✅ Created integration tests for full API testing
-- ✅ API versioning strategy configuration
-
 ### Frontend Enhancements
+- ✅ **Smart Form Field Tracking**: Only edited fields are sent in POST/PUT requests (reduces payload, prevents unintended overwrites)
 - ✅ Added Error Boundary for graceful error handling
 - ✅ Environment variable configuration (`.env` files)
 - ✅ Enhanced loading states across all pages
@@ -36,6 +27,16 @@ This application has been enhanced with enterprise-grade best practices:
 - ✅ Added React Hook Form for better form validation
 - ✅ Created centralized error handling UI
 - ✅ **Security**: Migrated from localStorage to sessionStorage (XSS mitigation)
+
+### Backend Enhancements
+- ✅ Added Spring Boot Actuator for monitoring (`/actuator/health`, `/actuator/metrics`)
+- ✅ Implemented Caffeine caching strategy for improved performance
+- ✅ Added comprehensive OpenAPI/Swagger documentation annotations
+- ✅ Implemented request/response logging filter
+- ✅ Added rate limiting with Bucket4j (100 requests/minute per IP)
+- ✅ Environment-based CORS configuration
+- ✅ Created integration tests for full API testing
+- ✅ API versioning strategy configuration
 
 ---
 
@@ -75,6 +76,7 @@ This application has been enhanced with enterprise-grade best practices:
 ### 🎨 Modern UI/UX
 - **Loading States**: Animated spinners during asynchronous operations
 - **Inline Editing**: Edit records without page navigation
+- **Smart Form Tracking**: Only changed fields are sent to the API (optimized payloads)
 - **Responsive Design**: Grid layout adapts to all screen sizes
 - **Error Handling**: User-friendly error messages with auto-dismiss
 - **Optimistic Updates**: Immediate UI feedback with React Query
@@ -156,7 +158,7 @@ This application has been enhanced with enterprise-grade best practices:
 ✅ **Component Architecture**
 - Reusable components (Spinner)
 - Context for global state (Auth)
-- Custom hooks for logic reuse
+- Custom hooks for logic reuse (useEditedFields)
 - Proper prop validation
 
 ✅ **Performance Optimization**
@@ -392,6 +394,8 @@ insurance-management-system/
 │   │   │   └── Spinner.jsx             # Loading spinner component
 │   │   ├── context/
 │   │   │   └── AuthContext.jsx         # Authentication context
+│   │   ├── hooks/
+│   │   │   └── useEditedFields.js      # Track edited form fields
 │   │   ├── pages/                      # Page components
 │   │   │   ├── Accounts.jsx            # Account management (React Query)
 │   │   │   ├── Claims.jsx              # Claims management
@@ -434,7 +438,57 @@ insurance-management-system/
 
 ---
 
-## 🔐 Authentication Flow
+## 🎯 Smart Form Field Tracking
+
+The frontend implements intelligent form field tracking to optimize API requests:
+
+### How It Works
+
+The `useEditedFields` hook tracks which form fields have been modified by the user:
+
+```javascript
+// In a form component
+const { trackEdit, getEditedData, reset } = useEditedFields({})
+
+// Track edits on input change
+<input onChange={(e) => {
+  trackEdit('firstName')
+  setForm({ ...form, firstName: e.target.value })
+}} />
+
+// Send only edited fields to API
+const handleUpdate = () => {
+  const editedData = getEditedData(form)
+  updateAccount(id, editedData) // Only sends changed fields
+}
+```
+
+### Benefits
+
+✅ **Reduced Payload Size**: Only changed fields are transmitted
+✅ **Prevents Unintended Overwrites**: Fields not edited by user aren't sent
+✅ **Better Performance**: Smaller network requests
+✅ **Cleaner API Contracts**: Backend receives only intentional changes
+✅ **Improved User Experience**: No accidental data loss
+
+### Implementation Details
+
+**Hook Location**: `demo-ui/src/hooks/useEditedFields.js`
+
+**Used In:**
+- Accounts page (all account fields + address)
+- Policies page (lineId, premium, startDate, endDate)
+- Claims page (description, claimStatus)
+- Lines page (name, description, minCoverage, maxCoverage)
+
+**Example Flow:**
+1. User opens edit form → `reset()` clears tracking
+2. User changes firstName → `trackEdit('firstName')` records it
+3. User changes address.city → `trackEdit('address')` records it
+4. User clicks Save → `getEditedData()` returns `{ firstName: "...", address: {...} }`
+5. API receives only those two fields
+
+---
 
 ### 1. Register New Account
 

@@ -11,6 +11,8 @@ export default function Login() {
   const { saveAuth } = useAuth()
   const navigate = useNavigate()
   
+  console.log('Login component mounted')
+  
   const { register, handleSubmit, formState: { errors } } = useForm()
 
   const onSubmit = async (data) => {
