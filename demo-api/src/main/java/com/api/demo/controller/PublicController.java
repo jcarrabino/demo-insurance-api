@@ -54,7 +54,7 @@ public class PublicController {
 	@GetMapping("/welcome")
 	@Operation(summary = "Welcome", description = "Health check endpoint")
 	public ResponseEntity<ApiResponse<String>> welcome() {
-		return new ResponseEntity<>(ApiResponse.success("Welcome to Insurance Management System"), HttpStatus.OK);
+		return new ResponseEntity<>(ApiResponse.success("Welcome to the Demo Insurance Management App"), HttpStatus.OK);
 	}
 
 	@PostMapping("/api/v1/auth/register")
