@@ -130,6 +130,10 @@ This script will:
 - 📊 API Metrics: `http://localhost:8080/actuator/metrics`
 - 🗄️ Database: `localhost:3306` (MySQL)
 
+**Test Admin Credentials:**
+- Username: test@test.com
+- Password: Password1!
+
 ### Running Backend Only
 
 **Prerequisites:**
