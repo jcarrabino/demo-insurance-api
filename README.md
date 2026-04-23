@@ -809,14 +809,12 @@ For issues, questions, or suggestions:
   - Prevents XSS attacks by making tokens inaccessible to JavaScript
   - SameSite=Strict attribute for CSRF protection
   - Secure flag ensures HTTPS-only transmission in production
-  - See [JWT_HTTPONLY_MIGRATION.md](JWT_HTTPONLY_MIGRATION.md) for details
 
 #### Resilience & Fault Tolerance
 - **Circuit Breaker Pattern**: Implemented Resilience4j across all service layers
   - Automatic failure detection and graceful degradation
   - Five service-specific circuit breakers (policy, claim, account, line, coverage)
   - Fallback methods for user-friendly error messages
-  - See [CIRCUIT_BREAKER_SETUP.md](CIRCUIT_BREAKER_SETUP.md) for details
 
 #### Configuration Management
 - **YAML Configuration**: Migrated from properties to YAML format
@@ -839,6 +837,3 @@ For issues, questions, or suggestions:
   - `/actuator/metrics` - Resilience4j metrics
 
 ---
-
-**Last Updated**: April 2026
-**Version**: 1.0.0
