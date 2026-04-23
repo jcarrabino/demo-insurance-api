@@ -16,6 +16,7 @@ import com.api.demo.service.AccountService;
 import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.PolicyService;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -36,6 +37,7 @@ public class PolicyServiceImpl implements PolicyService {
 		this.authService = authService;
 	}
 
+	@CircuitBreaker(name = "policyService", fallbackMethod = "createPolicyFallback")
 	@Override
 	public PolicyDTO createNewPolicy(Integer clientId, PolicyDTO policyDTO) {
 		// Verify account exists
@@ -58,6 +60,7 @@ public class PolicyServiceImpl implements PolicyService {
 		return result;
 	}
 
+	@CircuitBreaker(name = "policyService", fallbackMethod = "getPolicyFallback")
 	@Transactional
 	@Override
 	public PolicyDTO getById(Integer policyId) {
@@ -82,6 +85,7 @@ public class PolicyServiceImpl implements PolicyService {
 		return result;
 	}
 
+	@CircuitBreaker(name = "policyService", fallbackMethod = "updatePolicyFallback")
 	@Override
 	public PolicyDTO updatePolicy(PolicyDTO policyDTO, Integer policyId) {
 		Policy existingPolicy = policyRepository.findById(policyId)
@@ -132,6 +136,7 @@ public class PolicyServiceImpl implements PolicyService {
 		return result;
 	}
 
+	@CircuitBreaker(name = "policyService", fallbackMethod = "deletePolicyFallback")
 	@Override
 	public String deletePolicy(Integer policyId) {
 		Policy policy = policyRepository.findById(policyId)
@@ -149,6 +154,7 @@ public class PolicyServiceImpl implements PolicyService {
 		return "Insurance policy deleted successfully...";
 	}
 
+	@CircuitBreaker(name = "policyService", fallbackMethod = "getAllPoliciesFallback")
 	@Override
 	public List<PolicyDTO> getAllPolicy() {
 		List<Policy> policies;
@@ -190,6 +196,27 @@ public class PolicyServiceImpl implements PolicyService {
 	public List<Policy> getAllClaimsByPolicyNumber(Integer policyId) {
 		policyRepository.findById(policyId).orElseThrow(() -> new ResourceNotFoundException(null));
 		return null;
+	}
+
+	// Fallback methods for Circuit Breaker
+	public PolicyDTO createPolicyFallback(Integer clientId, PolicyDTO policyDTO, Exception e) {
+		throw new RuntimeException("Policy service is currently unavailable. Please try again later.", e);
+	}
+
+	public PolicyDTO getPolicyFallback(Integer policyId, Exception e) {
+		throw new RuntimeException("Policy service is currently unavailable. Please try again later.", e);
+	}
+
+	public PolicyDTO updatePolicyFallback(PolicyDTO policyDTO, Integer policyId, Exception e) {
+		throw new RuntimeException("Policy service is currently unavailable. Please try again later.", e);
+	}
+
+	public String deletePolicyFallback(Integer policyId, Exception e) {
+		throw new RuntimeException("Policy service is currently unavailable. Please try again later.", e);
+	}
+
+	public List<PolicyDTO> getAllPoliciesFallback(Exception e) {
+		throw new RuntimeException("Policy service is currently unavailable. Please try again later.", e);
 	}
 
 }

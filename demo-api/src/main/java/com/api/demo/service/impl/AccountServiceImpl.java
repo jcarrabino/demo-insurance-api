@@ -18,6 +18,8 @@ import com.api.demo.repository.AccountRepository;
 import com.api.demo.service.AccountService;
 import com.api.demo.utils.PasswordValidator;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
 @Service
 @Transactional
 public class AccountServiceImpl implements AccountService {
@@ -33,6 +35,7 @@ public class AccountServiceImpl implements AccountService {
 		this.modelMapper = modelMapper;
 	}
 
+	@CircuitBreaker(name = "accountService", fallbackMethod = "addAccountFallback")
 	@Override
 	public AccountDTO addAccount(AccountDTO account) {
 		if (LocalDate.now().isBefore(account.getDateOfBirth()))
@@ -47,6 +50,7 @@ public class AccountServiceImpl implements AccountService {
 		return modelMapper.map(savedAccount, AccountDTO.class);
 	}
 
+	@CircuitBreaker(name = "accountService", fallbackMethod = "findByIdFallback")
 	@Override
 	@Transactional(readOnly = true)
 	public AccountDTO findById(Integer id) {
@@ -55,6 +59,7 @@ public class AccountServiceImpl implements AccountService {
 		return modelMapper.map(account, AccountDTO.class);
 	}
 
+	@CircuitBreaker(name = "accountService", fallbackMethod = "findByEmailFallback")
 	@Override
 	@Transactional(readOnly = true)
 	public AccountDTO findByEmail(String email) {
@@ -77,6 +82,7 @@ public class AccountServiceImpl implements AccountService {
 		return clientRepository.findAll(pageable).map(account -> modelMapper.map(account, AccountDTO.class));
 	}
 
+	@CircuitBreaker(name = "accountService", fallbackMethod = "updateAccountInfoFallback")
 	@Override
 	public AccountDTO updateAccountInfo(AccountDTO account, Integer accountId) {
 		Account prevAccount = clientRepository.findById(accountId)
@@ -93,6 +99,7 @@ public class AccountServiceImpl implements AccountService {
 		return modelMapper.map(updatedAccountdata, AccountDTO.class);
 	}
 
+	@CircuitBreaker(name = "accountService", fallbackMethod = "partialUpdateAccountInfoFallback")
 	@Override
 	public AccountDTO partialUpdateAccountInfo(AccountDTO account, Integer accountId) {
 		Account existingAccount = clientRepository.findById(accountId)
@@ -134,6 +141,7 @@ public class AccountServiceImpl implements AccountService {
 		return modelMapper.map(updatedAccount, AccountDTO.class);
 	}
 
+	@CircuitBreaker(name = "accountService", fallbackMethod = "deleteAccountFallback")
 	@Override
 	public String deleteAccount(Integer id) {
 		Account account = clientRepository.findById(id)
@@ -142,6 +150,31 @@ public class AccountServiceImpl implements AccountService {
 
 		return "Account Data deleted successfully...";
 
+	}
+
+	// Fallback methods for Circuit Breaker
+	public AccountDTO addAccountFallback(AccountDTO account, Exception e) {
+		throw new RuntimeException("Account service is currently unavailable. Please try again later.", e);
+	}
+
+	public AccountDTO findByIdFallback(Integer id, Exception e) {
+		throw new RuntimeException("Account service is currently unavailable. Please try again later.", e);
+	}
+
+	public AccountDTO findByEmailFallback(String email, Exception e) {
+		throw new RuntimeException("Account service is currently unavailable. Please try again later.", e);
+	}
+
+	public AccountDTO updateAccountInfoFallback(AccountDTO account, Integer accountId, Exception e) {
+		throw new RuntimeException("Account service is currently unavailable. Please try again later.", e);
+	}
+
+	public AccountDTO partialUpdateAccountInfoFallback(AccountDTO account, Integer accountId, Exception e) {
+		throw new RuntimeException("Account service is currently unavailable. Please try again later.", e);
+	}
+
+	public String deleteAccountFallback(Integer id, Exception e) {
+		throw new RuntimeException("Account service is currently unavailable. Please try again later.", e);
 	}
 
 }

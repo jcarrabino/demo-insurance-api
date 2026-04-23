@@ -18,6 +18,8 @@ import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.ClaimService;
 import com.api.demo.service.PolicyService;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
 @Service
 public class ClaimServiceImpl implements ClaimService {
 
@@ -37,6 +39,7 @@ public class ClaimServiceImpl implements ClaimService {
 		this.authService = authService;
 	}
 
+	@CircuitBreaker(name = "claimService", fallbackMethod = "createClaimFallback")
 	@Override
 	public Claim createNewClaim(Integer policyId, ClaimDTO claimDTO) {
 		// Verify policy exists and get policy details
@@ -57,6 +60,7 @@ public class ClaimServiceImpl implements ClaimService {
 		return claimRepository.save(claim);
 	}
 
+	@CircuitBreaker(name = "claimService", fallbackMethod = "getClaimFallback")
 	@Override
 	public Claim getClaimById(Integer claimId) {
 		Claim claim = claimRepository.findById(claimId)
@@ -75,6 +79,7 @@ public class ClaimServiceImpl implements ClaimService {
 		return claim;
 	}
 
+	@CircuitBreaker(name = "claimService", fallbackMethod = "updateClaimFallback")
 	@Override
 	public Claim updateClaim(Claim claim, Integer claimId) {
 		Claim existingClaim = claimRepository.findById(claimId)
@@ -98,6 +103,7 @@ public class ClaimServiceImpl implements ClaimService {
 		return claimRepository.save(existingClaim);
 	}
 
+	@CircuitBreaker(name = "claimService", fallbackMethod = "partialUpdateClaimFallback")
 	@Override
 	public Claim partialUpdateClaim(ClaimDTO claimDTO, Integer claimId) {
 		Claim existingClaim = claimRepository.findById(claimId)
@@ -125,6 +131,7 @@ public class ClaimServiceImpl implements ClaimService {
 		return claimRepository.save(existingClaim);
 	}
 
+	@CircuitBreaker(name = "claimService", fallbackMethod = "deleteClaimFallback")
 	@Override
 	public String deleteClaim(Integer claimId) {
 		Claim claim = claimRepository.findById(claimId)
@@ -144,6 +151,7 @@ public class ClaimServiceImpl implements ClaimService {
 		return "claim info delete successfully...";
 	}
 
+	@CircuitBreaker(name = "claimService", fallbackMethod = "getAllClaimsFallback")
 	@Override
 	public List<Claim> getAllClaim() {
 		// If admin, return all claims
@@ -163,6 +171,31 @@ public class ClaimServiceImpl implements ClaimService {
 				}
 			}).collect(Collectors.toList());
 		}
+	}
+
+	// Fallback methods for Circuit Breaker
+	public Claim createClaimFallback(Integer policyId, ClaimDTO claimDTO, Exception e) {
+		throw new RuntimeException("Claim service is currently unavailable. Please try again later.", e);
+	}
+
+	public Claim getClaimFallback(Integer claimId, Exception e) {
+		throw new RuntimeException("Claim service is currently unavailable. Please try again later.", e);
+	}
+
+	public Claim updateClaimFallback(Claim claim, Integer claimId, Exception e) {
+		throw new RuntimeException("Claim service is currently unavailable. Please try again later.", e);
+	}
+
+	public Claim partialUpdateClaimFallback(ClaimDTO claimDTO, Integer claimId, Exception e) {
+		throw new RuntimeException("Claim service is currently unavailable. Please try again later.", e);
+	}
+
+	public String deleteClaimFallback(Integer claimId, Exception e) {
+		throw new RuntimeException("Claim service is currently unavailable. Please try again later.", e);
+	}
+
+	public List<Claim> getAllClaimsFallback(Exception e) {
+		throw new RuntimeException("Claim service is currently unavailable. Please try again later.", e);
 	}
 
 }

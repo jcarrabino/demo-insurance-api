@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import com.api.demo.entity.Account;
 import com.api.demo.entity.Line;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
 @Service
 public class CoverageCalculationService {
 
@@ -21,6 +23,7 @@ public class CoverageCalculationService {
 	 *            The insurance line with min/max coverage
 	 * @return Calculated coverage amount
 	 */
+	@CircuitBreaker(name = "coverageService", fallbackMethod = "calculateCoverageFallback")
 	public BigDecimal calculateCoverage(Account account, Line line) {
 		if (account == null || account.getAddress() == null || line == null) {
 			return BigDecimal.valueOf(line.getMinCoverage());
@@ -59,6 +62,7 @@ public class CoverageCalculationService {
 	 *            The zip code to evaluate
 	 * @return Risk level description
 	 */
+	@CircuitBreaker(name = "coverageService", fallbackMethod = "getRiskLevelFallback")
 	public String getRiskLevel(String zipCode) {
 		if (zipCode == null || zipCode.isEmpty()) {
 			return "UNKNOWN";
@@ -82,6 +86,7 @@ public class CoverageCalculationService {
 	 *            The zip code to evaluate
 	 * @return Premium multiplier (0.8 to 1.5)
 	 */
+	@CircuitBreaker(name = "coverageService", fallbackMethod = "getPremiumAdjustmentFallback")
 	public double getPremiumAdjustment(String zipCode) {
 		if (zipCode == null || zipCode.isEmpty()) {
 			return 1.0;
@@ -91,5 +96,18 @@ public class CoverageCalculationService {
 
 		// Higher risk (lower zip) = higher premium
 		return 1.5 - (firstDigit * 0.07);
+	}
+
+	// Fallback methods for Circuit Breaker
+	public BigDecimal calculateCoverageFallback(Account account, Line line, Exception e) {
+		throw new RuntimeException("Coverage calculation service is currently unavailable. Please try again later.", e);
+	}
+
+	public String getRiskLevelFallback(String zipCode, Exception e) {
+		throw new RuntimeException("Coverage calculation service is currently unavailable. Please try again later.", e);
+	}
+
+	public double getPremiumAdjustmentFallback(String zipCode, Exception e) {
+		throw new RuntimeException("Coverage calculation service is currently unavailable. Please try again later.", e);
 	}
 }
