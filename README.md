@@ -22,6 +22,7 @@ A modern, full-stack insurance management application demonstrating enterprise-g
 - [📋 Project Structure](#-project-structure)
 - [📚 API Endpoints](#-api-endpoints)
 - [🔐 Authentication & Authorization](#-authentication--authorization)
+- [🔄 Circuit Breaker Pattern](#-circuit-breaker-pattern)
 - [🗄️ Database Schema](#-database-schema)
 - [🧪 Testing](#-testing)
 - [📊 Performance Optimizations](#-performance-optimizations)
@@ -85,6 +86,7 @@ A modern, full-stack insurance management application demonstrating enterprise-g
 | **ModelMapper** | 3.1.1 | DTO Mapping |
 | **Bucket4j** | 8.10.1 | Rate Limiting |
 | **Caffeine** | Latest | In-memory Cache |
+| **Resilience4j** | 2.1.0 | Circuit Breaker Pattern |
 | **SpringDoc OpenAPI** | 2.8.6 | API Documentation |
 | **Lombok** | Latest | Boilerplate Reduction |
 | **Maven** | 3.8+ | Build Tool |
@@ -206,20 +208,24 @@ This script will:
 - Pagination support with `PagedResponse<T>`
 
 #### 2. **Security**
-- JWT-based authentication with Bearer tokens
+- JWT-based authentication with HttpOnly cookies
 - Role-based access control (RBAC) with `@PreAuthorize`
 - Password validation with strength requirements
 - Secure password hashing
 - CORS configuration with allowed methods
 - Authorization checks at service layer
+- XSS protection via HttpOnly cookie flag
+- CSRF protection via SameSite cookie attribute
 
 #### 3. **Performance & Scalability**
 - Database indexing on frequently queried fields
 - Pagination for large datasets (default 20 items/page)
 - Caching with Caffeine for frequently accessed data
 - N+1 query prevention with proper JPA relationships
-- Read-only transactions for query operations
+- Read-only transactions for query operations (`@Transactional(readOnly=true)`)
 - Virtual thread support (Java 21)
+- Circuit Breaker pattern for fault tolerance
+- Graceful degradation with fallback methods
 
 #### 4. **Code Quality**
 - Layered architecture (Controller → Service → Repository)
@@ -235,6 +241,8 @@ This script will:
 - Structured logging with request context
 - Spring Actuator endpoints for health checks
 - Metrics collection for monitoring
+- Circuit Breaker state monitoring via Actuator
+- Circuit Breaker event tracking
 
 #### 6. **Testing**
 - Unit tests for all controllers
@@ -268,10 +276,11 @@ This script will:
 #### 3. **API Integration**
 - Centralized API client with Axios
 - Request/response interceptors
-- Automatic JWT token injection
+- Automatic cookie handling (HttpOnly)
 - Response unwrapping for `ApiResponse<T>`
 - Consistent error handling
 - Parameterized API versioning
+- No manual JWT token storage needed
 
 #### 4. **Code Quality**
 - ESLint configuration for code standards
@@ -363,7 +372,7 @@ demo-api/
 │       └── NumberGenerator.java
 ├── src/test/java/           # Unit Tests
 ├── pom.xml                  # Maven Configuration
-└── application.properties   # Application Configuration
+└── application.yaml         # Application Configuration (YAML)
 ```
 
 ### Frontend
@@ -471,6 +480,70 @@ demo-ui/
 ```java
 @PreAuthorize("hasRole('ADMIN')")                    // Admin only
 @PreAuthorize("hasRole('ADMIN') or @authorizationService.isOwner(#id)")  // Admin or owner
+```
+
+### HttpOnly Cookie Authentication
+- JWT tokens stored in HttpOnly cookies (not accessible to JavaScript)
+- Automatic cookie transmission with requests via `withCredentials: true`
+- SameSite=Strict for CSRF protection
+- Secure flag ensures HTTPS-only transmission in production
+- Logout endpoint clears the authentication cookie
+
+---
+
+[⬆ Back to Top](#top)
+
+## 🔄 Circuit Breaker Pattern
+
+### Overview
+Resilience4j Circuit Breaker pattern implemented across all service layers for fault tolerance and graceful degradation.
+
+### Circuit Breaker States
+- **CLOSED**: Normal operation, requests pass through
+- **OPEN**: Service failing, requests rejected immediately, fallback invoked
+- **HALF_OPEN**: Testing recovery with limited requests
+
+### Protected Services
+- **policyService**: Policy CRUD operations
+- **claimService**: Claim CRUD operations
+- **accountService**: Account CRUD operations
+- **lineService**: Line CRUD operations
+- **coverageService**: Coverage calculations
+
+### Configuration
+```yaml
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10              # Calls to evaluate
+        minimumNumberOfCalls: 5            # Min calls before evaluating
+        failureRateThreshold: 50%          # Failure rate to open
+        waitDurationInOpenState: 10s       # Time before retry
+        slowCallDurationThreshold: 2s      # Duration considered slow
+```
+
+### Monitoring Circuit Breakers
+```bash
+# List all circuit breakers
+curl http://localhost:8080/actuator/circuitbreakers
+
+# Get circuit breaker events
+curl http://localhost:8080/actuator/circuitbreaker-events/policyService
+
+# View metrics
+curl http://localhost:8080/actuator/metrics/resilience4j.circuitbreaker.calls
+```
+
+### Fallback Behavior
+Each protected method has a fallback that throws a user-friendly exception:
+```java
+@CircuitBreaker(name = "policyService", fallbackMethod = "getPolicyFallback")
+public PolicyDTO getById(Integer policyId) { ... }
+
+public PolicyDTO getPolicyFallback(Integer policyId, Exception e) {
+    throw new RuntimeException("Policy service is currently unavailable. Please try again later.", e);
+}
 ```
 
 ---
@@ -704,18 +777,66 @@ For issues, questions, or suggestions:
 
 ## 🎯 Key Features
 
-✅ **JWT Authentication** - Secure token-based auth
+✅ **JWT Authentication** - Secure HttpOnly cookie-based auth
 ✅ **Role-Based Access Control** - Admin and user roles
+✅ **Circuit Breaker Pattern** - Fault tolerance and graceful degradation
 ✅ **Pagination** - Efficient data retrieval
-✅ **Caching** - Improved performance
-✅ **Rate Limiting** - API protection
-✅ **Input Validation** - Data integrity
+✅ **Caching** - Improved performance with Caffeine
+✅ **Rate Limiting** - API protection with Bucket4j
+✅ **Input Validation** - Data integrity with Jakarta Validation
 ✅ **Error Handling** - Consistent error responses
 ✅ **API Documentation** - Swagger/OpenAPI
 ✅ **Comprehensive Testing** - Unit and integration tests
-✅ **Modern Stack** - Latest technologies
-✅ **Best Practices** - Enterprise patterns
+✅ **Modern Stack** - Latest technologies (Spring Boot 4.0, React 18)
+✅ **Best Practices** - Enterprise patterns and architecture
 ✅ **Scalable Architecture** - Ready for growth
+✅ **Monitoring & Observability** - Spring Actuator endpoints
+✅ **YAML Configuration** - Clean, hierarchical configuration
+
+---
+
+**Last Updated**: April 2026
+**Version**: 1.0.0
+
+---
+
+## 📋 Recent Updates
+
+### v1.0.0 - April 2026
+
+#### Security Enhancements
+- **HttpOnly Cookies**: JWT tokens now stored in HttpOnly cookies instead of localStorage
+  - Prevents XSS attacks by making tokens inaccessible to JavaScript
+  - SameSite=Strict attribute for CSRF protection
+  - Secure flag ensures HTTPS-only transmission in production
+  - See [JWT_HTTPONLY_MIGRATION.md](JWT_HTTPONLY_MIGRATION.md) for details
+
+#### Resilience & Fault Tolerance
+- **Circuit Breaker Pattern**: Implemented Resilience4j across all service layers
+  - Automatic failure detection and graceful degradation
+  - Five service-specific circuit breakers (policy, claim, account, line, coverage)
+  - Fallback methods for user-friendly error messages
+  - See [CIRCUIT_BREAKER_SETUP.md](CIRCUIT_BREAKER_SETUP.md) for details
+
+#### Configuration Management
+- **YAML Configuration**: Migrated from properties to YAML format
+  - Cleaner, hierarchical structure
+  - Better organization of nested properties
+  - Easier maintenance and readability
+  - File: `application.yaml`
+
+#### Performance Improvements
+- **Read-Only Transactions**: Added `@Transactional(readOnly=true)` to all GET endpoints
+  - Optimizes database query execution
+  - Improves connection pooling efficiency
+  - Better resource utilization
+
+#### Monitoring & Observability
+- **Actuator Endpoints**: Exposed circuit breaker monitoring
+  - `/actuator/circuitbreakers` - List all circuit breakers
+  - `/actuator/circuitbreaker-events` - View circuit breaker events
+  - `/actuator/health` - Health status including circuit breakers
+  - `/actuator/metrics` - Resilience4j metrics
 
 ---
 
