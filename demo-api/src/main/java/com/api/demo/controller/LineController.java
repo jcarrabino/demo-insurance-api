@@ -2,10 +2,10 @@ package com.api.demo.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +30,11 @@ import jakarta.validation.Valid;
 @SecurityRequirement(name = "bearerAuth")
 public class LineController {
 
-	@Autowired
-	private LineService lineService;
+	private final LineService lineService;
+
+	public LineController(LineService lineService) {
+		this.lineService = lineService;
+	}
 
 	@PostMapping
 	@Operation(summary = "Create line", description = "Create a new insurance line. Admin only.")
@@ -43,6 +46,7 @@ public class LineController {
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Get line by ID", description = "Retrieve line details by ID")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<LineDTO>> getLineById(@PathVariable Integer id) {
 		LineDTO line = lineService.getById(id);
 		return new ResponseEntity<>(ApiResponse.success(line), HttpStatus.OK);
@@ -50,6 +54,7 @@ public class LineController {
 
 	@GetMapping
 	@Operation(summary = "Get all lines", description = "Retrieve all insurance lines")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<List<LineDTO>>> getAllLines() {
 		List<LineDTO> lines = lineService.getAll();
 		return new ResponseEntity<>(ApiResponse.success(lines), HttpStatus.OK);

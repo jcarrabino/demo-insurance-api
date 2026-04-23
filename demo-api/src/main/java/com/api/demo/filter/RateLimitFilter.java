@@ -5,7 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -20,11 +19,13 @@ import java.util.Map;
 @ConditionalOnProperty(name = "rate.limit.enabled", havingValue = "true", matchIfMissing = false)
 public class RateLimitFilter extends OncePerRequestFilter {
 
-	@Autowired
-	private Map<String, Bucket> rateLimitBuckets;
+	private final Map<String, Bucket> rateLimitBuckets;
+	private final RateLimitConfig rateLimitConfig;
 
-	@Autowired
-	private RateLimitConfig rateLimitConfig;
+	public RateLimitFilter(Map<String, Bucket> rateLimitBuckets, RateLimitConfig rateLimitConfig) {
+		this.rateLimitBuckets = rateLimitBuckets;
+		this.rateLimitConfig = rateLimitConfig;
+	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

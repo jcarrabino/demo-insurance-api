@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.api.demo.dto.LineDTO;
@@ -16,11 +15,13 @@ import com.api.demo.service.LineService;
 @Service
 public class LineServiceImpl implements LineService {
 
-	@Autowired
-	private LineRepository lineRepository;
+	private final LineRepository lineRepository;
+	private final ModelMapper modelMapper;
 
-	@Autowired
-	private ModelMapper modelMapper;
+	public LineServiceImpl(LineRepository lineRepository, ModelMapper modelMapper) {
+		this.lineRepository = lineRepository;
+		this.modelMapper = modelMapper;
+	}
 
 	@Override
 	public LineDTO create(LineDTO lineDTO) {

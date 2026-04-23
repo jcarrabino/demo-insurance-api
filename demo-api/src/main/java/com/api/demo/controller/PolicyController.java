@@ -2,10 +2,10 @@ package com.api.demo.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,11 +31,13 @@ import jakarta.validation.Valid;
 @SecurityRequirement(name = "bearerAuth")
 public class PolicyController {
 
-	@Autowired
-	private PolicyService policyService;
+	private final PolicyService policyService;
+	private final AuthorizationService authService;
 
-	@Autowired
-	private AuthorizationService authService;
+	public PolicyController(PolicyService policyService, AuthorizationService authService) {
+		this.policyService = policyService;
+		this.authService = authService;
+	}
 
 	@PostMapping("/{accountId}")
 	@Operation(summary = "Create policy", description = "Create a new policy for an account")
@@ -64,6 +66,7 @@ public class PolicyController {
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Get policy by ID", description = "Retrieve policy details by ID")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<PolicyDTO>> getPolicy(@PathVariable Integer id) {
 		PolicyDTO policy = policyService.getById(id);
 		return new ResponseEntity<>(ApiResponse.success(policy), HttpStatus.OK);
@@ -71,6 +74,7 @@ public class PolicyController {
 
 	@GetMapping
 	@Operation(summary = "Get all policies", description = "Retrieve all policies")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<List<PolicyDTO>>> getAllPolicy() {
 		List<PolicyDTO> policies = policyService.getAllPolicy();
 		return new ResponseEntity<>(ApiResponse.success(policies), HttpStatus.OK);

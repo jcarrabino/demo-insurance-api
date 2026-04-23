@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from '../../context/AuthContext'
 
 describe('AuthContext', () => {
   beforeEach(() => {
-    localStorage.clear()
+    sessionStorage.clear()
     jest.clearAllMocks()
   })
 
@@ -22,18 +22,15 @@ describe('AuthContext', () => {
       wrapper: AuthProvider,
     })
 
-    const mockToken = 'test-token'
     const mockUser = { id: 1, email: 'test@test.com', admin: true }
 
     act(() => {
-      result.current.saveAuth(mockToken, mockUser)
+      result.current.saveAuth(mockUser)
     })
 
-    expect(result.current.token).toBe(mockToken)
+    expect(result.current.token).toBe(true)
     expect(result.current.user).toEqual(mockUser)
     expect(result.current.isLoggedIn).toBe(true)
-    expect(localStorage.setItem).toHaveBeenCalledWith('token', mockToken)
-    expect(localStorage.setItem).toHaveBeenCalledWith('user', JSON.stringify(mockUser))
   })
 
   it('should logout and clear auth data', () => {
@@ -42,7 +39,7 @@ describe('AuthContext', () => {
     })
 
     act(() => {
-      result.current.saveAuth('token', { id: 1, email: 'test@test.com' })
+      result.current.saveAuth({ id: 1, email: 'test@test.com' })
     })
 
     act(() => {
@@ -52,17 +49,13 @@ describe('AuthContext', () => {
     expect(result.current.token).toBeNull()
     expect(result.current.user).toBeNull()
     expect(result.current.isLoggedIn).toBe(false)
-    expect(localStorage.removeItem).toHaveBeenCalledWith('token')
-    expect(localStorage.removeItem).toHaveBeenCalledWith('user')
   })
 
-  it('should restore auth from localStorage', () => {
-    const mockToken = 'stored-token'
+  it('should restore auth from sessionStorage', () => {
     const mockUser = { id: 2, email: 'stored@test.com' }
 
-    localStorage.getItem.mockImplementation((key) => {
-      if (key === 'token') return mockToken
-      if (key === 'user') return JSON.stringify(mockUser)
+    sessionStorage.getItem = jest.fn((key) => {
+      if (key === 'demo_app_user') return JSON.stringify(mockUser)
       return null
     })
 
@@ -70,7 +63,6 @@ describe('AuthContext', () => {
       wrapper: AuthProvider,
     })
 
-    expect(result.current.token).toBe(mockToken)
     expect(result.current.user).toEqual(mockUser)
     expect(result.current.isLoggedIn).toBe(true)
   })

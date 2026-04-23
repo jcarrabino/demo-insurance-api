@@ -1,6 +1,5 @@
 package com.api.demo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -9,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,11 +35,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @SecurityRequirement(name = "bearerAuth")
 public class AccountController {
 
-	@Autowired
-	private AccountService accountService;
+	private final AccountService accountService;
+	private final AuthorizationService authService;
 
-	@Autowired
-	private AuthorizationService authService;
+	public AccountController(AccountService accountService, AuthorizationService authService) {
+		this.accountService = accountService;
+		this.authService = authService;
+	}
 
 	@PatchMapping("/{id}")
 	@Operation(summary = "Update account", description = "Partial update of an account. Only provided fields are updated. Requires admin or account owner.")
@@ -72,6 +74,7 @@ public class AccountController {
 	@Operation(summary = "Get account by ID", description = "Retrieve account details by ID. Requires admin or account owner.")
 	@PreAuthorize("hasRole('ADMIN') or @authorizationService.isOwner(#id)")
 	@Cacheable(value = "accounts", key = "#id")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<AccountDTO>> getAccountById(@PathVariable Integer id) {
 		AccountDTO account = accountService.findById(id);
 		return new ResponseEntity<>(ApiResponse.success(account), HttpStatus.OK);
@@ -80,6 +83,7 @@ public class AccountController {
 	@GetMapping("/email/{email}")
 	@Operation(summary = "Get account by email", description = "Retrieve account details by email.")
 	@Cacheable(value = "accounts", key = "#email")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<AccountDTO>> getAccountByEmail(@PathVariable String email) {
 		AccountDTO account = accountService.findByEmail(email);
 		return new ResponseEntity<>(ApiResponse.success(account), HttpStatus.OK);
@@ -89,6 +93,7 @@ public class AccountController {
 	@Operation(summary = "Get all accounts", description = "Retrieve all accounts with pagination. Admin only.")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Cacheable(value = "accounts", key = "#page + '-' + #size")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<PagedResponse<AccountDTO>>> getAllAccounts(
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
 		Pageable pageable = PageRequest.of(page, size);

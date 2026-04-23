@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.api.demo.dto.PolicyDTO;
@@ -22,20 +21,20 @@ import jakarta.transaction.Transactional;
 @Service
 public class PolicyServiceImpl implements PolicyService {
 
-	@Autowired
-	private PolicyRepository policyRepository;
+	private final PolicyRepository policyRepository;
+	private final LineRepository lineRepository;
+	private final AccountService accountService;
+	private final ModelMapper modelMapper;
+	private final AuthorizationService authService;
 
-	@Autowired
-	private LineRepository lineRepository;
-
-	@Autowired
-	private AccountService accountService;
-
-	@Autowired
-	private ModelMapper modelMapper;
-
-	@Autowired
-	private AuthorizationService authService;
+	public PolicyServiceImpl(PolicyRepository policyRepository, LineRepository lineRepository,
+			AccountService accountService, ModelMapper modelMapper, AuthorizationService authService) {
+		this.policyRepository = policyRepository;
+		this.lineRepository = lineRepository;
+		this.accountService = accountService;
+		this.modelMapper = modelMapper;
+		this.authService = authService;
+	}
 
 	@Override
 	public PolicyDTO createNewPolicy(Integer clientId, PolicyDTO policyDTO) {

@@ -1,6 +1,5 @@
 package com.api.demo.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,8 +12,11 @@ import com.api.demo.repository.AccountRepository;
 @Service
 public class AuthorizationService {
 
-	@Autowired
-	private AccountRepository accountRepository;
+	private final AccountRepository accountRepository;
+
+	public AuthorizationService(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
+	}
 
 	public Account getCurrentAccount() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

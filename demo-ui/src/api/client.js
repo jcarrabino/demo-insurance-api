@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { secureStorage } from '../utils/secureStorage'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 const API_VERSION = import.meta.env.VITE_API_VERSION || 'v1'
@@ -7,26 +6,10 @@ const API_VERSION = import.meta.env.VITE_API_VERSION || 'v1'
 // Helper function to build versioned API path
 const apiPath = (endpoint) => `/api/${API_VERSION}${endpoint}`
 
-const api = axios.create({ baseURL: API_BASE_URL })
-
-// Attach JWT Bearer token to every request if present
-api.interceptors.request.use(
-  (config) => {
-    const token = secureStorage.getToken()
-    
-    // Only add Bearer token if:
-    // 1. Token exists in sessionStorage
-    // 2. Authorization header is not already set (e.g., for Basic auth in login)
-    if (token && !config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
+const api = axios.create({ 
+  baseURL: API_BASE_URL,
+  withCredentials: true // Enable sending cookies with requests
+})
 
 // Response interceptor to handle 401 errors (expired/invalid token) and unwrap ApiResponse
 api.interceptors.response.use(
@@ -53,9 +36,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Don't redirect if already on login page
       if (window.location.pathname !== '/login') {
-        // Token is expired or invalid - clear auth data and redirect to login
+        // Token is expired or invalid - redirect to login
         console.warn('Unauthorized request - token expired or invalid, redirecting to login')
-        secureStorage.clear()
         
         // Dispatch custom event for AuthContext to handle
         window.dispatchEvent(new Event('auth:logout'))
@@ -74,6 +56,7 @@ export default api
 export const register = (data) => api.post(apiPath('/auth/register'), data)
 export const login = (email, password) =>
   api.post(apiPath('/auth/login'), { email, password })
+export const logout = () => api.post(apiPath('/auth/logout'))
 
 // Accounts
 export const getAccounts = (page = 0, size = 20) => api.get(apiPath(`/accounts?page=${page}&size=${size}`))

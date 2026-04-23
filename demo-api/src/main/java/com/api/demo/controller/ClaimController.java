@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.api.demo.dto.ClaimDTO;
 import com.api.demo.entity.Claim;
@@ -38,17 +38,18 @@ import jakarta.validation.Valid;
 @SecurityRequirement(name = "bearerAuth")
 public class ClaimController {
 
-	@Autowired
-	private ClaimService claimService;
+	private final ClaimService claimService;
+	private final PolicyService policyService;
+	private final AuthorizationService authService;
+	private final ModelMapper modelMapper;
 
-	@Autowired
-	private PolicyService policyService;
-
-	@Autowired
-	private AuthorizationService authService;
-
-	@Autowired
-	private ModelMapper modelMapper;
+	public ClaimController(ClaimService claimService, PolicyService policyService, 
+			AuthorizationService authService, ModelMapper modelMapper) {
+		this.claimService = claimService;
+		this.policyService = policyService;
+		this.authService = authService;
+		this.modelMapper = modelMapper;
+	}
 
 	private ClaimDTO toDTO(Claim claim) {
 		ClaimDTO dto = modelMapper.map(claim, ClaimDTO.class);
@@ -76,6 +77,7 @@ public class ClaimController {
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Get claim by ID", description = "Retrieve claim details by ID")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<ClaimDTO>> getClaimById(@PathVariable Integer id) {
 		Claim claim = claimService.getClaimById(id);
 		return new ResponseEntity<>(ApiResponse.success(toDTO(claim)), HttpStatus.OK);
@@ -90,6 +92,7 @@ public class ClaimController {
 
 	@GetMapping
 	@Operation(summary = "Get all claims", description = "Retrieve all claims with pagination")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<PagedResponse<ClaimDTO>>> getAllClaims(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "20") int size) {
 		Pageable pageable = PageRequest.of(page, size);

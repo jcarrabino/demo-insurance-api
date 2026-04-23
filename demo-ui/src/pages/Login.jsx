@@ -20,19 +20,11 @@ export default function Login() {
     setIsLoading(true)
     try {
       const res = await login(data.email, data.password)
-      // JWT token is now in the Authorization header from the JwtGenerator filter
-      const jwt = res.headers['authorization'] || res.headers['Authorization']
       
-      if (!jwt) {
-        console.error('No JWT token received in response headers:', res.headers)
-        setError('Authentication failed - no token received')
-        return
-      }
-      
-      // Account data is in the response body (unwrapped by response interceptor)
+      // Token is now in HttpOnly cookie, only extract user data from response
       // res.data now contains the LoginResponse object directly
       const loginResponse = res.data
-      saveAuth(jwt, loginResponse.account || loginResponse)
+      saveAuth(loginResponse.account || loginResponse)
       navigate('/policies')
     } catch (err) {
       console.error('Login error:', err)

@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,18 +31,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @SecurityRequirement(name = "bearerAuth")
 public class CoverageController {
 
-	@Autowired
-	private CoverageCalculationService coverageService;
+	private final CoverageCalculationService coverageService;
+	private final AccountRepository accountRepository;
+	private final LineRepository lineRepository;
 
-	@Autowired
-	private AccountRepository accountRepository;
-
-	@Autowired
-	private LineRepository lineRepository;
+	public CoverageController(CoverageCalculationService coverageService, 
+			AccountRepository accountRepository, LineRepository lineRepository) {
+		this.coverageService = coverageService;
+		this.accountRepository = accountRepository;
+		this.lineRepository = lineRepository;
+	}
 
 	@GetMapping("/calculate/{accountId}/{lineId}")
 	@Operation(summary = "Calculate coverage", description = "Calculate coverage for an account and insurance line")
 	@PreAuthorize("hasRole('ADMIN') or @authorizationService.isOwner(#accountId)")
+	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<Map<String, Object>>> calculateCoverage(@PathVariable Integer accountId,
 			@PathVariable Integer lineId) {
 

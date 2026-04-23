@@ -17,6 +17,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -26,13 +27,11 @@ public class JwtValidator extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
-		String jwt = request.getHeader(SecurityContext.JWT_HEADER);
+		String jwt = extractJwtFromCookie(request);
 
 		if (jwt != null) {
 
 			try {
-
-				jwt = jwt.substring(7);
 
 				SecretKey key = Keys.hmacShaKeyFor(SecurityContext.JWT_KEY.getBytes());
 				Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
@@ -53,6 +52,18 @@ public class JwtValidator extends OncePerRequestFilter {
 
 		filterChain.doFilter(request, response);
 
+	}
+
+	private String extractJwtFromCookie(HttpServletRequest request) {
+		Cookie[] cookies = request.getCookies();
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				if ("Authorization".equals(cookie.getName())) {
+					return cookie.getValue();
+				}
+			}
+		}
+		return null;
 	}
 
 	@Override

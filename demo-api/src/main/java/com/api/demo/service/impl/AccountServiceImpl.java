@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,14 +22,16 @@ import com.api.demo.utils.PasswordValidator;
 @Transactional
 public class AccountServiceImpl implements AccountService {
 
-	@Autowired
-	private AccountRepository clientRepository;
+	private final AccountRepository clientRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final ModelMapper modelMapper;
 
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-
-	@Autowired
-	private ModelMapper modelMapper;
+	public AccountServiceImpl(AccountRepository clientRepository, PasswordEncoder passwordEncoder, 
+			ModelMapper modelMapper) {
+		this.clientRepository = clientRepository;
+		this.passwordEncoder = passwordEncoder;
+		this.modelMapper = modelMapper;
+	}
 
 	@Override
 	public AccountDTO addAccount(AccountDTO account) {
