@@ -11,10 +11,13 @@ import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Getter
@@ -32,11 +35,13 @@ public class Policy {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
-	@Column(name = "line_id")
-	private Integer lineId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "line_id", nullable = false)
+	private Line line;
 
-	@Column(name = "account_id")
-	private Integer accountId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "account_id", nullable = false)
+	private Account account;
 
 	private BigDecimal premium;
 

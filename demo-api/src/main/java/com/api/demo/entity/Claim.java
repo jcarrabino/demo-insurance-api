@@ -1,13 +1,15 @@
 package com.api.demo.entity;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
@@ -27,8 +29,8 @@ import lombok.ToString;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = "policy")
+@EqualsAndHashCode(exclude = "policy")
 @Entity
 @Table(name = "claim", indexes = {@Index(name = "idx_policy_id", columnList = "policy_id"),
 		@Index(name = "idx_claim_status", columnList = "claim_status"),
@@ -46,7 +48,8 @@ public class Claim {
 	@Enumerated(EnumType.STRING)
 	private ClaimStatus claimStatus;
 
-	@Column(name = "policy_id")
-	private Integer policyId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "policy_id", nullable = false)
+	private Policy policy;
 
 }

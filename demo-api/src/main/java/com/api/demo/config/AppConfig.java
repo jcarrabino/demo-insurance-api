@@ -91,9 +91,20 @@ public class AppConfig {
 	@Bean
 	public ModelMapper mapper() {
 		ModelMapper mapper = new ModelMapper();
-		// Map Policy.expiryDate to PolicyDTO.endDate
+		// Policy entity -> PolicyDTO
 		mapper.typeMap(com.api.demo.entity.Policy.class, com.api.demo.dto.PolicyDTO.class)
-				.addMapping(com.api.demo.entity.Policy::getExpiryDate, com.api.demo.dto.PolicyDTO::setEndDate);
+				.addMapping(com.api.demo.entity.Policy::getExpiryDate, com.api.demo.dto.PolicyDTO::setEndDate)
+				.addMapping(src -> src.getLine() != null ? src.getLine().getId() : null, com.api.demo.dto.PolicyDTO::setLineId)
+				.addMapping(src -> src.getAccount() != null ? src.getAccount().getId() : null, com.api.demo.dto.PolicyDTO::setAccountId);
+		// Claim entity -> ClaimDTO
+		mapper.typeMap(com.api.demo.entity.Claim.class, com.api.demo.dto.ClaimDTO.class)
+				.addMapping(src -> src.getPolicy() != null ? src.getPolicy().getId() : null, com.api.demo.dto.ClaimDTO::setPolicyId);
+		// Account entity -> AccountDTO (map List<Policy> to List<Integer> policy IDs)
+		mapper.typeMap(com.api.demo.entity.Account.class, com.api.demo.dto.AccountDTO.class)
+				.addMapping(src -> src.getPolicies() != null
+						? src.getPolicies().stream().map(com.api.demo.entity.Policy::getId).collect(java.util.stream.Collectors.toList())
+						: null,
+						com.api.demo.dto.AccountDTO::setPolicies);
 		return mapper;
 	}
 

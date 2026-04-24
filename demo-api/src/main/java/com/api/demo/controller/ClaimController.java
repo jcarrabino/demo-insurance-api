@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,9 +21,7 @@ import com.api.demo.dto.ClaimDTO;
 import com.api.demo.entity.Claim;
 import com.api.demo.model.ApiResponse;
 import com.api.demo.model.PagedResponse;
-import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.ClaimService;
-import com.api.demo.service.PolicyService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -39,22 +35,17 @@ import jakarta.validation.Valid;
 public class ClaimController {
 
 	private final ClaimService claimService;
-	private final PolicyService policyService;
-	private final AuthorizationService authService;
 	private final ModelMapper modelMapper;
 
-	public ClaimController(ClaimService claimService, PolicyService policyService, 
-			AuthorizationService authService, ModelMapper modelMapper) {
+	public ClaimController(ClaimService claimService, ModelMapper modelMapper) {
 		this.claimService = claimService;
-		this.policyService = policyService;
-		this.authService = authService;
 		this.modelMapper = modelMapper;
 	}
 
 	private ClaimDTO toDTO(Claim claim) {
 		ClaimDTO dto = modelMapper.map(claim, ClaimDTO.class);
-		if (claim.getPolicyId() != null) {
-			dto.setPolicy(policyService.getByIdInternal(claim.getPolicyId()));
+		if (claim.getPolicy() != null) {
+			dto.setPolicy(modelMapper.map(claim.getPolicy(), com.api.demo.dto.PolicyDTO.class));
 		}
 		return dto;
 	}
@@ -95,7 +86,6 @@ public class ClaimController {
 	@Transactional(readOnly = true)
 	public ResponseEntity<ApiResponse<PagedResponse<ClaimDTO>>> getAllClaims(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "20") int size) {
-		Pageable pageable = PageRequest.of(page, size);
 		List<Claim> claims = claimService.getAllClaim();
 		List<ClaimDTO> dtos = claims.stream().map(this::toDTO).collect(Collectors.toList());
 

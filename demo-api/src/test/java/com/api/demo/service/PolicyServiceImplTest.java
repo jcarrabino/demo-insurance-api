@@ -1,11 +1,11 @@
 package com.api.demo.service;
 
-import com.api.demo.dto.AccountDTO;
 import com.api.demo.dto.PolicyDTO;
 import com.api.demo.entity.Account;
 import com.api.demo.entity.Line;
 import com.api.demo.entity.Policy;
 import com.api.demo.exception.ResourceNotFoundException;
+import com.api.demo.repository.AccountRepository;
 import com.api.demo.repository.LineRepository;
 import com.api.demo.repository.PolicyRepository;
 import com.api.demo.service.impl.PolicyServiceImpl;
@@ -34,7 +34,7 @@ class PolicyServiceImplTest {
 	@Mock
 	LineRepository lineRepository;
 	@Mock
-	AccountService accountService;
+	AccountRepository accountRepository;
 	@Mock
 	AuthorizationService authService;
 	@Mock
@@ -46,7 +46,6 @@ class PolicyServiceImplTest {
 	private Policy policy;
 	private PolicyDTO policyDTO;
 	private Account account;
-	private AccountDTO accountDTO;
 	private Line line;
 
 	@BeforeEach
@@ -54,17 +53,14 @@ class PolicyServiceImplTest {
 		account = new Account();
 		account.setId(1);
 
-		accountDTO = new AccountDTO();
-		accountDTO.setId(1);
-
 		line = new Line();
 		line.setId(1);
 		line.setName("Auto Insurance");
 
 		policy = new Policy();
 		policy.setId(1);
-		policy.setLineId(1);
-		policy.setAccountId(1);
+		policy.setLine(line);
+		policy.setAccount(account);
 		policy.setPremium(BigDecimal.valueOf(500));
 		policy.setStartDate(LocalDate.now());
 		policy.setExpiryDate(LocalDate.now().plusYears(1));
@@ -79,90 +75,86 @@ class PolicyServiceImplTest {
 	}
 
 	@Test
-    void createNewPolicy_savesAndReturnsDTO() {
-        when(accountService.findById(1)).thenReturn(accountDTO);
-        when(lineRepository.findById(1)).thenReturn(Optional.of(line));
-        when(policyRepository.save(any(Policy.class))).thenReturn(policy);
-        when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
+	void createNewPolicy_savesAndReturnsDTO() {
+		when(accountRepository.findById(1)).thenReturn(Optional.of(account));
+		when(lineRepository.findById(1)).thenReturn(Optional.of(line));
+		when(policyRepository.save(any(Policy.class))).thenReturn(policy);
+		when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
 
-        PolicyDTO result = policyService.createNewPolicy(1, policyDTO);
+		PolicyDTO result = policyService.createNewPolicy(1, policyDTO);
 
-        assertThat(result).isNotNull();
-        verify(policyRepository).save(any(Policy.class));
-        verify(accountService, times(2)).findById(1); // Once for validation, once for populating DTO
-    }
-
-	@Test
-    void getById_returnsDTO_whenFound() {
-        when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
-        when(authService.isAdmin()).thenReturn(true);
-        when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
-        when(accountService.findById(1)).thenReturn(accountDTO);
-
-        PolicyDTO result = policyService.getById(1);
-
-        assertThat(result.getLineId()).isEqualTo(1);
-    }
+		assertThat(result).isNotNull();
+		verify(policyRepository).save(any(Policy.class));
+	}
 
 	@Test
-    void getById_throws_whenNotFound() {
-        when(policyRepository.findById(99)).thenReturn(Optional.empty());
+	void getById_returnsDTO_whenFound() {
+		when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+		when(authService.isAdmin()).thenReturn(true);
+		when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
 
-        assertThatThrownBy(() -> policyService.getById(99))
-                .isInstanceOf(ResourceNotFoundException.class);
-    }
+		PolicyDTO result = policyService.getById(1);
 
-	@Test
-    void updatePolicy_updatesAndReturnsDTO() {
-        when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
-        when(authService.isAdmin()).thenReturn(true);
-        when(lineRepository.findById(1)).thenReturn(Optional.of(line));
-        when(policyRepository.save(policy)).thenReturn(policy);
-        when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
-        when(accountService.findById(1)).thenReturn(accountDTO);
-
-        PolicyDTO result = policyService.updatePolicy(policyDTO, 1);
-
-        assertThat(result).isNotNull();
-        verify(policyRepository).save(policy);
-    }
+		assertThat(result.getLineId()).isEqualTo(1);
+	}
 
 	@Test
-    void updatePolicy_throws_whenNotFound() {
-        when(policyRepository.findById(99)).thenReturn(Optional.empty());
+	void getById_throws_whenNotFound() {
+		when(policyRepository.findById(99)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> policyService.updatePolicy(policyDTO, 99))
-                .isInstanceOf(ResourceNotFoundException.class);
-    }
-
-	@Test
-    void deletePolicy_deletesAndReturnsMessage() {
-        when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
-        when(authService.isAdmin()).thenReturn(true);
-
-        String result = policyService.deletePolicy(1);
-
-        verify(policyRepository).delete(policy);
-        assertThat(result).contains("deleted");
-    }
+		assertThatThrownBy(() -> policyService.getById(99))
+				.isInstanceOf(ResourceNotFoundException.class);
+	}
 
 	@Test
-    void deletePolicy_throws_whenNotFound() {
-        when(policyRepository.findById(99)).thenReturn(Optional.empty());
+	void updatePolicy_updatesAndReturnsDTO() {
+		when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+		when(authService.isAdmin()).thenReturn(true);
+		when(lineRepository.findById(1)).thenReturn(Optional.of(line));
+		when(policyRepository.save(policy)).thenReturn(policy);
+		when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
 
-        assertThatThrownBy(() -> policyService.deletePolicy(99))
-                .isInstanceOf(ResourceNotFoundException.class);
-    }
+		PolicyDTO result = policyService.updatePolicy(policyDTO, 1);
+
+		assertThat(result).isNotNull();
+		verify(policyRepository).save(policy);
+	}
 
 	@Test
-    void getAllPolicy_returnsList() {
-        when(authService.isAdmin()).thenReturn(true);
-        when(policyRepository.findAll()).thenReturn(List.of(policy));
-        when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
-        when(accountService.findById(1)).thenReturn(accountDTO);
+	void updatePolicy_throws_whenNotFound() {
+		when(policyRepository.findById(99)).thenReturn(Optional.empty());
 
-        List<PolicyDTO> result = policyService.getAllPolicy();
+		assertThatThrownBy(() -> policyService.updatePolicy(policyDTO, 99))
+				.isInstanceOf(ResourceNotFoundException.class);
+	}
 
-        assertThat(result).hasSize(1);
-    }
+	@Test
+	void deletePolicy_deletesAndReturnsMessage() {
+		when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+		when(authService.isAdmin()).thenReturn(true);
+
+		String result = policyService.deletePolicy(1);
+
+		verify(policyRepository).delete(policy);
+		assertThat(result).contains("deleted");
+	}
+
+	@Test
+	void deletePolicy_throws_whenNotFound() {
+		when(policyRepository.findById(99)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> policyService.deletePolicy(99))
+				.isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	void getAllPolicy_returnsList() {
+		when(authService.isAdmin()).thenReturn(true);
+		when(policyRepository.findAll()).thenReturn(List.of(policy));
+		when(modelMapper.map(policy, PolicyDTO.class)).thenReturn(policyDTO);
+
+		List<PolicyDTO> result = policyService.getAllPolicy();
+
+		assertThat(result).hasSize(1);
+	}
 }

@@ -9,10 +9,11 @@ import org.springframework.stereotype.Service;
 import com.api.demo.dto.PolicyDTO;
 import com.api.demo.exception.ResourceNotFoundException;
 import com.api.demo.entity.Account;
+import com.api.demo.entity.Line;
 import com.api.demo.entity.Policy;
+import com.api.demo.repository.AccountRepository;
 import com.api.demo.repository.LineRepository;
 import com.api.demo.repository.PolicyRepository;
-import com.api.demo.service.AccountService;
 import com.api.demo.service.AuthorizationService;
 import com.api.demo.service.PolicyService;
 
@@ -20,19 +21,20 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.transaction.Transactional;
 
 @Service
+@Transactional
 public class PolicyServiceImpl implements PolicyService {
 
 	private final PolicyRepository policyRepository;
 	private final LineRepository lineRepository;
-	private final AccountService accountService;
+	private final AccountRepository accountRepository;
 	private final ModelMapper modelMapper;
 	private final AuthorizationService authService;
 
 	public PolicyServiceImpl(PolicyRepository policyRepository, LineRepository lineRepository,
-			AccountService accountService, ModelMapper modelMapper, AuthorizationService authService) {
+			AccountRepository accountRepository, ModelMapper modelMapper, AuthorizationService authService) {
 		this.policyRepository = policyRepository;
 		this.lineRepository = lineRepository;
-		this.accountService = accountService;
+		this.accountRepository = accountRepository;
 		this.modelMapper = modelMapper;
 		this.authService = authService;
 	}
@@ -40,94 +42,69 @@ public class PolicyServiceImpl implements PolicyService {
 	@CircuitBreaker(name = "policyService", fallbackMethod = "createPolicyFallback")
 	@Override
 	public PolicyDTO createNewPolicy(Integer clientId, PolicyDTO policyDTO) {
-		// Verify account exists
-		accountService.findById(clientId);
-
-		// Verify line exists
-		lineRepository.findById(policyDTO.getLineId())
+		Account account = accountRepository.findById(clientId)
+				.orElseThrow(() -> new ResourceNotFoundException("Account", "id", String.valueOf(clientId)));
+		Line line = lineRepository.findById(policyDTO.getLineId())
 				.orElseThrow(() -> new ResourceNotFoundException("Line", "id", String.valueOf(policyDTO.getLineId())));
 
-		Policy policy = Policy.builder().lineId(policyDTO.getLineId()).accountId(clientId)
-				.premium(policyDTO.getPremium()).startDate(policyDTO.getStartDate()).expiryDate(policyDTO.getEndDate())
+		Policy policy = Policy.builder()
+				.line(line)
+				.account(account)
+				.premium(policyDTO.getPremium())
+				.startDate(policyDTO.getStartDate())
+				.expiryDate(policyDTO.getEndDate())
 				.build();
 
-		Policy savedPolicy = policyRepository.save(policy);
-		PolicyDTO result = modelMapper.map(savedPolicy, PolicyDTO.class);
-
-		// Populate account details
-		result.setAccount(accountService.findById(clientId));
-
-		return result;
+		return modelMapper.map(policyRepository.save(policy), PolicyDTO.class);
 	}
 
 	@CircuitBreaker(name = "policyService", fallbackMethod = "getPolicyFallback")
-	@Transactional
 	@Override
 	public PolicyDTO getByIdInternal(Integer policyId) {
 		Policy policy = policyRepository.findById(policyId)
-				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy ", "" + policyId));
-		PolicyDTO result = modelMapper.map(policy, PolicyDTO.class);
-		if (policy.getAccountId() != null) {
-			result.setAccount(accountService.findById(policy.getAccountId()));
-		}
-		return result;
+				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy", "" + policyId));
+		return modelMapper.map(policy, PolicyDTO.class);
 	}
 
 	@CircuitBreaker(name = "policyService", fallbackMethod = "getPolicyFallback")
-	@Transactional
 	@Override
 	public PolicyDTO getById(Integer policyId) {
 		Policy policy = policyRepository.findById(policyId)
-				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy ", "" + policyId));
+				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy", "" + policyId));
 
-		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (policy.getAccountId() == null || !policy.getAccountId().equals(currentAccount.getId())) {
+			if (!policy.getAccount().getId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot access another user's policy");
 			}
 		}
 
-		PolicyDTO result = modelMapper.map(policy, PolicyDTO.class);
-
-		// Populate account details
-		if (policy.getAccountId() != null) {
-			result.setAccount(accountService.findById(policy.getAccountId()));
-		}
-
-		return result;
+		return modelMapper.map(policy, PolicyDTO.class);
 	}
 
 	@CircuitBreaker(name = "policyService", fallbackMethod = "updatePolicyFallback")
 	@Override
 	public PolicyDTO updatePolicy(PolicyDTO policyDTO, Integer policyId) {
 		Policy existingPolicy = policyRepository.findById(policyId)
-				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy ", "" + policyId));
+				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy", "" + policyId));
 
-		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (existingPolicy.getAccountId() == null
-					|| !existingPolicy.getAccountId().equals(currentAccount.getId())) {
+			if (!existingPolicy.getAccount().getId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot update another user's policy");
 			}
 		}
 
-		// Update lineId if provided
 		if (policyDTO.getLineId() != null) {
-			lineRepository.findById(policyDTO.getLineId()).orElseThrow(
+			Line line = lineRepository.findById(policyDTO.getLineId()).orElseThrow(
 					() -> new ResourceNotFoundException("Line", "id", String.valueOf(policyDTO.getLineId())));
-			existingPolicy.setLineId(policyDTO.getLineId());
+			existingPolicy.setLine(line);
 		}
-
-		// Update accountId if provided (admin only)
 		if (policyDTO.getAccountId() != null && authService.isAdmin()) {
-			// Verify account exists
-			accountService.findById(policyDTO.getAccountId());
-			existingPolicy.setAccountId(policyDTO.getAccountId());
+			Account account = accountRepository.findById(policyDTO.getAccountId()).orElseThrow(
+					() -> new ResourceNotFoundException("Account", "id", String.valueOf(policyDTO.getAccountId())));
+			existingPolicy.setAccount(account);
 		}
-
-		// Update other fields
 		if (policyDTO.getPremium() != null) {
 			existingPolicy.setPremium(policyDTO.getPremium());
 		}
@@ -138,27 +115,18 @@ public class PolicyServiceImpl implements PolicyService {
 			existingPolicy.setExpiryDate(policyDTO.getEndDate());
 		}
 
-		Policy updatedPolicy = policyRepository.save(existingPolicy);
-		PolicyDTO result = modelMapper.map(updatedPolicy, PolicyDTO.class);
-
-		// Populate account details
-		if (updatedPolicy.getAccountId() != null) {
-			result.setAccount(accountService.findById(updatedPolicy.getAccountId()));
-		}
-
-		return result;
+		return modelMapper.map(policyRepository.save(existingPolicy), PolicyDTO.class);
 	}
 
 	@CircuitBreaker(name = "policyService", fallbackMethod = "deletePolicyFallback")
 	@Override
 	public String deletePolicy(Integer policyId) {
 		Policy policy = policyRepository.findById(policyId)
-				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy ", "" + policyId));
+				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy", "" + policyId));
 
-		// If not admin, verify the policy belongs to the current user
 		if (!authService.isAdmin()) {
 			Account currentAccount = authService.getCurrentAccount();
-			if (policy.getAccountId() == null || !policy.getAccountId().equals(currentAccount.getId())) {
+			if (!policy.getAccount().getId().equals(currentAccount.getId())) {
 				throw new SecurityException("Cannot delete another user's policy");
 			}
 		}
@@ -172,46 +140,32 @@ public class PolicyServiceImpl implements PolicyService {
 	public List<PolicyDTO> getAllPolicy() {
 		List<Policy> policies;
 
-		// If admin, return all policies
-		// If regular user, return only their policies
 		if (authService.isAdmin()) {
 			policies = policyRepository.findAll();
 		} else {
-			// Get current user's account
 			Account currentAccount = authService.getCurrentAccount();
-			policies = policyRepository.findAll().stream().filter(
-					policy -> policy.getAccountId() != null && policy.getAccountId().equals(currentAccount.getId()))
-					.collect(Collectors.toList());
+			policies = policyRepository.findByAccount(currentAccount);
 		}
 
-		// Map to DTOs and populate account details
-		return policies.stream().map(policy -> {
-			PolicyDTO dto = modelMapper.map(policy, PolicyDTO.class);
-			if (policy.getAccountId() != null) {
-				dto.setAccount(accountService.findById(policy.getAccountId()));
-			}
-			return dto;
-		}).collect(Collectors.toList());
+		return policies.stream()
+				.map(p -> modelMapper.map(p, PolicyDTO.class))
+				.collect(Collectors.toList());
 	}
 
 	@Override
 	public PolicyDTO assignPolicyWithAccount(Integer accountId, Integer policyId) {
-		// Verify account exists
-		accountService.findById(accountId);
-
-		PolicyDTO policy = getById(policyId);
-		policy.setAccountId(accountId);
-
-		return updatePolicy(policy, policyId);
+		PolicyDTO policyDTO = new PolicyDTO();
+		policyDTO.setAccountId(accountId);
+		return updatePolicy(policyDTO, policyId);
 	}
 
 	@Override
-	public List<Policy> getAllClaimsByPolicyNumber(Integer policyId) {
+	public List<com.api.demo.entity.Policy> getAllClaimsByPolicyNumber(Integer policyId) {
 		policyRepository.findById(policyId).orElseThrow(() -> new ResourceNotFoundException(null));
 		return null;
 	}
 
-	// Fallback methods for Circuit Breaker
+	// Fallback methods
 	public PolicyDTO createPolicyFallback(Integer clientId, PolicyDTO policyDTO, Exception e) {
 		throw new RuntimeException("Policy service is currently unavailable. Please try again later.", e);
 	}
