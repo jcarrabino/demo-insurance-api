@@ -26,6 +26,9 @@ public interface PolicyService {
 	 */
 	PolicyDTO getById(Integer policyId);
 
+	/** Internal lookup — no ownership check. Use only for service-to-service calls. */
+	PolicyDTO getByIdInternal(Integer policyId);
+
 	/**
 	 *
 	 * @param policy:

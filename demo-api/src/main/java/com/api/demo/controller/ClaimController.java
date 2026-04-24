@@ -54,7 +54,7 @@ public class ClaimController {
 	private ClaimDTO toDTO(Claim claim) {
 		ClaimDTO dto = modelMapper.map(claim, ClaimDTO.class);
 		if (claim.getPolicyId() != null) {
-			dto.setPolicy(policyService.getById(claim.getPolicyId()));
+			dto.setPolicy(policyService.getByIdInternal(claim.getPolicyId()));
 		}
 		return dto;
 	}

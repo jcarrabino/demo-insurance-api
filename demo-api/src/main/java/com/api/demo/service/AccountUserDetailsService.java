@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,6 +28,10 @@ public class AccountUserDetailsService implements UserDetailsService {
 		AccountDTO client = accountService.findByEmail(username);
 
 		List<GrantedAuthority> authority = new ArrayList<>();
+
+		if (Boolean.TRUE.equals(client.getAdmin())) {
+			authority.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+		}
 
 		return new User(client.getEmail(), client.getPassword(), authority);
 

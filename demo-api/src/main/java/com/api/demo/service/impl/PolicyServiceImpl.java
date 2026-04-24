@@ -63,6 +63,19 @@ public class PolicyServiceImpl implements PolicyService {
 	@CircuitBreaker(name = "policyService", fallbackMethod = "getPolicyFallback")
 	@Transactional
 	@Override
+	public PolicyDTO getByIdInternal(Integer policyId) {
+		Policy policy = policyRepository.findById(policyId)
+				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy ", "" + policyId));
+		PolicyDTO result = modelMapper.map(policy, PolicyDTO.class);
+		if (policy.getAccountId() != null) {
+			result.setAccount(accountService.findById(policy.getAccountId()));
+		}
+		return result;
+	}
+
+	@CircuitBreaker(name = "policyService", fallbackMethod = "getPolicyFallback")
+	@Transactional
+	@Override
 	public PolicyDTO getById(Integer policyId) {
 		Policy policy = policyRepository.findById(policyId)
 				.orElseThrow(() -> new ResourceNotFoundException("Insurance Policy", "policy ", "" + policyId));
